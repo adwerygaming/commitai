@@ -48,7 +48,7 @@ async function summaryWithAI(gitDiffMsg: string) {
     `
 
     const aiConfig: GenerateContentParameters = {
-        model: "gemini-2.5-pro",
+        model: "gemini-2.5-flash-lite",
         contents: promt
     }
 
