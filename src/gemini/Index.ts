@@ -6,7 +6,7 @@ import humanNumber from "human-number"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const callerPath = process.env.CALL_FROM
-const showAIWatermark: boolean = true
+const showAIWatermark: boolean = false
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
@@ -171,9 +171,9 @@ if (gitDiffContent.data) {
     const gitAction = await writeCommitMessage(changesMessage, response)
 
     if (gitAction == false) {
-        console.log(`[${Tags.Git}] Finished with error. [SUCCESS]`)
+        console.log(`[${Tags.Git}] Finished with error. [FAILED]`)
     } else {
-        console.log(`[${Tags.Git}] Finished with no error. [FAILED]`)
+        console.log(`[${Tags.Git}] Finished with no error. [SUCCESS]`)
     }
 } else {
     console.log(`[${Tags.Error}] getDiffContent returns no data.`)
