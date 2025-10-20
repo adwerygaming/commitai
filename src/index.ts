@@ -1,3 +1,3 @@
 import "dotenv/config"
 
-import "./gemini/Index.js"
+import "./commitai/Index.js"

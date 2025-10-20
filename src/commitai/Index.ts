@@ -1,7 +1,7 @@
-import { GenerateContentParameters, GenerateContentResponse, GoogleGenAI } from '@google/genai';
+import { GenerateContentParameters, GoogleGenAI } from '@google/genai';
 import Tags from '../utils/Tags.js';
 import { execSync } from "child_process";
-import { GetDiffContentProp, GoogleAIModels } from '../types/CommitAITypes.js';
+import { AIPersonality, GetDiffContentResponse, GoogleAIModels, SummaryWithAIProp, SummaryWithAIResponse, WriteCommitMessageProp } from '../types/CommitAITypes.js';
 import humanNumber from "human-number"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -14,33 +14,37 @@ console.log(`[${Tags.System}] Generative Commit Message`)
 console.log(`[${Tags.System}] Called From: ${callerPath}`)
 
 const AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite"
+const selectedPersonality: AIPersonality = "tsundere"
 
-async function summaryWithAI(gitDiffMsg: string) {
+async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp): Promise<SummaryWithAIResponse> {
+    let promts =  (await import("./promts.json")).default
+    let selectedPromt = null
+
+    console.log(`[${Tags.AI}] Selected Personality: ${personality}`)
+
+    if (personality == "normal") {
+        selectedPromt = promts["normal_prompt"]
+    } else if (personality == "sarcastic") {
+        selectedPromt = promts["sarcastic_prompt"]
+    } else if (personality == "toxic") {
+        selectedPromt = promts["toxic_prompt"]
+    } else if (personality == "tsundere") {
+        selectedPromt = promts["tsundere_prompt"]
+    } else if (personality == "random") {
+        const picker = Math.floor(Math.random() * AIPersonality.length)
+        const choosen = AIPersonality[picker]
+
+        summaryWithAI({ gitDiffMessage, personality: choosen })
+    } else {
+        return { data: [], response: null }
+    }
+
     const promt = `
-    You are a commit-message generator. Read the provided git diff HEAD and produce a concise 50-character (max) summary and a detailed commit description broken into individual change lines. Output must be exactly one JSON array of strings and nothing else.
-    
-    Rules & format:
-    - Output only a JSON array of strings. Example: ["<subject>", "- <type>(<scope>): <short desc>", "- <type>(<scope>): <short desc>",]
-    - Element 0 — subject: one line, ≤150 characters, terse summary (use imperative tone).
-    - Elements 1..N — body lines: one change per line, each MUST start with - and follow conventional prefix:
-    - type(scope): short description where type ∈ {feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert}. Use scope when meaningful (e.g., links, posts, ws, uac).
-    - Use imperative, present-tense verbs and concise phrasing. Each body line should be a single sentence-like fragment (avoid commas that create multi-sentence lines).
-    - If multiple unrelated changes exist, produce separate lines for each feature/area. If many small fixes occurred in one area, coalesce into logical, single-line items per feature.
-    - Keep each body line short (preferably ≤ 80 chars). Avoid filler words.
-    - If the diff shows no changes, return ["No changes"].
-    - Do not output anything other than the JSON array (no logs, explanation, or markdown) including starting & ending code block (\`\`\`json). Just output pure array.
-
-    Mapping examples (for your reference; not to be output):
-    - fix(links): update links return limit error
-    - refactor(posts): remove unnecessary code accessing post
-    - feat(ws): add new ws handler
-    - test(uac): add user creation access token (WIP).
-
-    Now, read the diff that follows and output only the JSON array as specified.
+    ${selectedPromt}
 
     [Start of git head diff content]
     
-    ${gitDiffMsg}
+    ${gitDiffMessage}
     
     [End of gir head diff content]
     `
@@ -70,7 +74,7 @@ async function summaryWithAI(gitDiffMsg: string) {
 
     if (!res) {
         console.log(`[${Tags.AI}] AI Didn't send any response.`)
-        return { data: [] }
+        return { data: [], response: null }
     }
 
     console.log("")
@@ -90,10 +94,10 @@ async function summaryWithAI(gitDiffMsg: string) {
     return { data, response }
 }
 
-async function writeCommitMessage(changes: string[], response?: GenerateContentResponse) {
+async function writeCommitMessage({ changes, response }: WriteCommitMessageProp): Promise<boolean> {
     if (!changes || changes.length == 0) {
         console.log(`[${Tags.Git}] Didn't receive string array of changes.`)
-        return 
+        return false
     }
 
     let changesMessages = ""
@@ -132,7 +136,8 @@ async function writeCommitMessage(changes: string[], response?: GenerateContentR
     return true
 }
 
-async function getDiffContent() {
+
+async function getDiffContent(): Promise<GetDiffContentResponse> {
     let output = null
 
     try {
@@ -144,11 +149,11 @@ async function getDiffContent() {
     } catch (e: any) {
         const msg = e.message as string
         if (msg.includes("Not a git repository")) {
-            return { error: "not_in_repository"} as GetDiffContentProp
+            return { data: null, error: "not_in_repository"}
         }
     }
 
-    return { data: output } as GetDiffContentProp
+    return { data: output } 
 }
 
 const gitDiffContent = await getDiffContent()
@@ -159,7 +164,7 @@ if (gitDiffContent?.error == "not_in_repository") {
     process.exit(1)
 }
 
-if (gitDiffContent.data.length == 0) {
+if (gitDiffContent.data && gitDiffContent.data.length == 0) {
     console.log(`[${Tags.Error}] There is no diff message there..`)
     process.exit(1)
 }
@@ -167,8 +172,8 @@ if (gitDiffContent.data.length == 0) {
 if (gitDiffContent.data) {
     console.log(`[${Tags.System}] Found ${gitDiffContent.data.length} line${gitDiffContent.data.length > 1 ? "s" : ""} of changes.`)
     
-    const { data: changesMessage, response } = await summaryWithAI(gitDiffContent.data)
-    const gitAction = await writeCommitMessage(changesMessage, response)
+    const { data: changesMessage, response } = await summaryWithAI({ gitDiffMessage: gitDiffContent.data, personality: selectedPersonality })
+    const gitAction = await writeCommitMessage({ changes: changesMessage, response })
 
     if (gitAction == false) {
         console.log(`[${Tags.Git}] Finished with error. [FAILED]`)
