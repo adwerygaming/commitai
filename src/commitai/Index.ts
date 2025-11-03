@@ -14,7 +14,7 @@ console.log(`[${Tags.System}] Generative Commit Message`)
 console.log(`[${Tags.System}] Called From: ${callerPath}`)
 
 const AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite"
-const selectedPersonality: AIPersonality = "tsundere"
+const selectedPersonality: AIPersonality = "normal"
 
 async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp): Promise<SummaryWithAIResponse> {
     let promts =  (await import("./promts.json")).default
