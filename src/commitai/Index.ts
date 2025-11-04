@@ -1,8 +1,9 @@
 import { GenerateContentParameters, GoogleGenAI } from '@google/genai';
-import Tags from '../utils/Tags.js';
 import { execSync } from "child_process";
+import humanNumber from "human-number";
+import notifier from 'node-notifier';
 import { AIPersonality, GetDiffContentResponse, GoogleAIModels, SummaryWithAIProp, SummaryWithAIResponse, WriteCommitMessageProp } from '../types/CommitAITypes.js';
-import humanNumber from "human-number"
+import Tags from '../utils/Tags.js';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const callerPath = process.env.CALL_FROM
@@ -15,6 +16,22 @@ console.log(`[${Tags.System}] Called From: ${callerPath}`)
 
 const AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite"
 const selectedPersonality: AIPersonality = "normal"
+
+interface SendNotificationProp {
+    message: string
+}
+
+async function sendNotification({ message }: SendNotificationProp): Promise<void> {
+    notifier.notify({
+        title: 'CommitAI',
+        message,
+        sound: true,
+        wait: true,
+        timeout: 5
+    });
+    
+}
+
 
 async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp): Promise<SummaryWithAIResponse> {
     let promts =  (await import("./promts.json")).default
@@ -74,6 +91,7 @@ async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp)
 
     if (!res) {
         console.log(`[${Tags.AI}] AI Didn't send any response.`)
+        sendNotification({ message: "AI didn't send any response." })
         return { data: [], response: null }
     }
 
@@ -82,6 +100,14 @@ async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp)
     const cleanedRes = res.replace("\`\`\`json", "").replace("\`\`\`", "")
 
     let data: string[] = JSON.parse(cleanedRes)
+
+    if (!data || data.length == 0) {
+        console.log(`[${Tags.AI}] AI response is empty or not an array.`)
+        console.log(data)
+        sendNotification({ message: "AI response is empty or not an array. Please check the logs for more details." })
+        return { data: [], response }
+    }
+
     console.log(`[${Tags.AI}] Cleaned Response:`)
 
     for (let i = 0; i < data.length; i++) {
@@ -128,14 +154,13 @@ async function writeCommitMessage({ changes, response }: WriteCommitMessageProp)
         } catch (e) {
             console.log(`[${Tags.Error}] Failed to run git command [${res}]`)
             console.error(e)
+            sendNotification({ message: `Failed to run git command [${res}]. Please check the logs for more details.` })
             return false
         }
     }
     
-
     return true
 }
-
 
 async function getDiffContent(): Promise<GetDiffContentResponse> {
     let output = null
@@ -179,8 +204,10 @@ if (gitDiffContent.data) {
         console.log(`[${Tags.Git}] Finished with error. [FAILED]`)
     } else {
         console.log(`[${Tags.Git}] Finished with no error. [SUCCESS]`)
+        sendNotification({ message: `👍. Wasted ${response?.usageMetadata?.totalTokenCount ?? 0} tokens.` })
     }
 } else {
     console.log(`[${Tags.Error}] getDiffContent returns no data.`)
+    console.log(gitDiffContent)
     process.exit(1)
 }

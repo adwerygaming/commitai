@@ -26,9 +26,11 @@
   },
   "dependencies": {
     "@google/genai": "^1.17.0",
+    "@types/node-notifier": "^8.0.5",
     "caller-path": "^4.0.0",
     "dotenv": "^17.2.2",
     "gradient-string": "^3.0.0",
-    "human-number": "^2.0.6"
+    "human-number": "^2.0.6",
+    "node-notifier": "^10.0.1"
   }
 }
