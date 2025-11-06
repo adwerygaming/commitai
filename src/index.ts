@@ -1,3 +1,1 @@
-import "dotenv/config"
-
-import "./commitai/Index.js"
+console.log("Hello via Bun!");

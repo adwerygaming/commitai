@@ -1,36 +1,12 @@
 {
-  "name": "pemula-ts",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "dev": "nodemon",
-    "start": "npx tsx ./src/index.ts",
-    "build": "tsup"
-  },
-  "keywords": [],
-  "author": "adwerygaming",
-  "license": "ISC",
+  "name": "commitai2",
+  "module": "index.ts",
   "type": "module",
-  "engines": {
-    "node": ">=21"
-  },
+  "private": true,
   "devDependencies": {
-    "@types/human-number": "^1.0.2",
-    "@types/node": "^24.2.0",
-    "concurrently": "^9.2.0",
-    "nodemon": "^3.1.10",
-    "tsup": "^8.5.0",
-    "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "@types/bun": "latest"
   },
-  "dependencies": {
-    "@google/genai": "^1.17.0",
-    "@types/node-notifier": "^8.0.5",
-    "caller-path": "^4.0.0",
-    "dotenv": "^17.2.2",
-    "gradient-string": "^3.0.0",
-    "human-number": "^2.0.6",
-    "node-notifier": "^10.0.1"
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
