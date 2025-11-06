@@ -29,7 +29,6 @@ async function sendNotification({ message }: SendNotificationProp): Promise<void
         wait: true,
         timeout: 5
     });
-    
 }
 
 
@@ -97,9 +96,15 @@ async function summaryWithAI({ gitDiffMessage, personality }: SummaryWithAIProp)
 
     console.log("")
 
-    const cleanedRes = res.replace("\`\`\`json", "").replace("\`\`\`", "")
+    const cleanedRes = res?.replace("\`\`\`json", "")?.replace("\`\`\`", "")
 
-    let data: string[] = JSON.parse(cleanedRes)
+    let data: string[] | null = null 
+    try {
+        data = JSON?.parse(cleanedRes)
+    } catch (e) {
+        console.log(`[${Tags.Error}] Failed to parse AI response as JSON.`)
+        console.error(e)
+    }
 
     if (!data || data.length == 0) {
         console.log(`[${Tags.AI}] AI response is empty or not an array.`)
