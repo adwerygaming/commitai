@@ -1,0 +1,27 @@
+name: Attend CI
+
+on:
+    push:
+        branches: [ main, dev ]
+    pull_request:
+        branches: [ main, dev ]
+
+jobs:
+    lint-and-build:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: "Checkout Repo"
+          uses: actions/checkout@v4
+
+        - name: "Install Bun"
+          uses: oven-sh/setup-bun@v1
+          with:
+            bun-version: latest
+
+        - name: "Install dependencies"
+          run: bun install
+
+        - name: "Lint - Check for errors & unused vars"
+          run: |
+            bunx eslint .

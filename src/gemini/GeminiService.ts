@@ -31,7 +31,7 @@ export async function GeminiService() {
 
     const services = {
         LoadPromts: async ({ personality }: LoadPromtsProp) => {
-            let promts = (await import("../assets/promts.json")).default
+            const promts = (await import("../assets/promts.json")).default
             let selectedPrompt = null
 
             if (personality == "normal") {
@@ -87,7 +87,7 @@ export async function GeminiService() {
 
             console.log("")
 
-            const cleanedRes = res?.replace("\`\`\`json", "")?.replace("\`\`\`", "")
+            const cleanedRes = res?.replace("```json", "")?.replace("```", "")
 
             let data: string[] | null = null
             try {
