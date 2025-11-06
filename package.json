@@ -1,12 +1,24 @@
 {
-  "name": "commitai2",
+  "name": "commitai-bun-ver",
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun ./src/index.ts --watch",
+    "start": "bun ./src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@google/genai": "^1.29.0",
+    "@types/human-number": "^1.0.2",
+    "@types/node-notifier": "^8.0.5",
+    "gradient-string": "^3.0.0",
+    "human-number": "^2.0.7",
+    "node-notifier": "^10.0.1"
   }
 }
