@@ -82,6 +82,7 @@ export function CommitAIService() {
                     timestamp: new Date().toISOString()
                 }
 
+                console.log("")
                 console.log(`[${Tags.Debug}] Adding summary git changes to database.`)
                 console.log(`[${Tags.Debug}] Key record         : ${key}`)
                 console.log(`[${Tags.Debug}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
