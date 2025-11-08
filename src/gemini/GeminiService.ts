@@ -71,6 +71,8 @@ export async function GeminiService() {
 
             const finalPromt = `${selectedPromt}\n\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n\n${historyContextText}`
 
+            console.log(finalPromt)
+
             const geminiAIConfig: GenerateContentParameters = {
                 model: GEMINI_AI_MODEL,
                 contents: finalPromt
