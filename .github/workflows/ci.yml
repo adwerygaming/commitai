@@ -1,4 +1,4 @@
-name: Attend CI
+name: CommitAI CI
 
 on:
     push:
