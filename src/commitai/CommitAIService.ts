@@ -97,10 +97,10 @@ export function CommitAIService() {
                 const key = services.Database.ResolveProjectDirToKey(projectDir)
 
                 const record = await DatabaseClient.get<SummaryGitSummaryRecord[]>(key)
-                return record?.[0] ?? null
+                return record?.reverse()?.[0] ?? null
             },
             GetAllSummaryGitChanges: async () => {
-                const allData = await DatabaseClient.all<Record<string, SummaryGitSummaryRecord>[]>()
+                const allData = await DatabaseClient.all<SummaryGitSummaryRecord[]>()
                 return allData.map(item => ({
                     projectKey: item.id,
                     data: item.value
@@ -111,7 +111,7 @@ export function CommitAIService() {
 
                 const allData = await services.Database.GetAllSummaryGitChanges()
                 const filteredData = allData.filter(item => item.projectKey === key).flatMap(item => item.data)
-                const last5 = filteredData.slice(0, 5)
+                const last5 = filteredData.reverse().slice(0, 5)
 
                 return last5
             }
