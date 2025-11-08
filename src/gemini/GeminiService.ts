@@ -85,11 +85,21 @@ export async function GeminiService() {
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
             const diffDate = moment(lastCommit?.timestamp).fromNow();
+            const latestChanges = lastCommit?.changes
 
-            console.log("")
-            console.log(`[${Tags.AI}] Latest Changes on this repository:`)
-            console.log(lastCommit?.changes.join("\n") ?? "No previous summaries found.")
-            console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.changes.length > 1) ? "" : "s"} were made ${diffDate}.`)
+            if (latestChanges && latestChanges.length > 0) {
+                console.log("")
+                console.log(`[${Tags.AI}] Latest Changes on this repository:`)
+                for (let i = 0; i < latestChanges.length; i++) {
+                    const res = latestChanges[i];
+
+                    if (!res) continue;
+
+                    console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
+                }
+                console.log(lastCommit?.changes.join("\n") ?? "No previous summaries found.")
+                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.changes.length > 1) ? "" : "s"} were made ${diffDate}.`)
+            }
 
             const startTime = Date.now()
             const response = await GeminiAI.models.generateContent(geminiAIConfig);
