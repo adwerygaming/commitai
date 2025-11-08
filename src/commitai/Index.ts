@@ -62,7 +62,15 @@ const { success, elapsed, error } = await CommitAIService().WriteCommitMessage({
 
 if (success) {
     console.log(`[${Tags.System}] Commit message written successfully in ${elapsed}ms.`);
-    CommitAIService().SendDesktopNotification({ message: `👍. Wasted ${summaryStats.usageMetadata?.totalTokenCount ?? 0} tokens.`})
+    CommitAIService().SendDesktopNotification({ message: `👍. Wasted ${summaryStats.usageMetadata?.totalTokenCount ?? 0} tokens.` })
+
+    // Add to database
+    CommitAIService().Database.AddSummaryGitChanges({
+        changes: summaryData,
+        stats: summaryStats,
+        projectDir: callerPath,
+        elapsedMs: elapsed ?? 0,
+    })
 } else {
     console.log(`[${Tags.Error}] Failed to write commit message: ${error}`);
     process.exit(1);

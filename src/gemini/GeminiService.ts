@@ -24,6 +24,7 @@ export interface SummaryGitChangesStatsResponse {
     modelVersion: GenerateContentResponse["modelVersion"]
 }
 
+
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });

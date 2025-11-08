@@ -22,9 +22,13 @@
     "@google/genai": "^1.29.0",
     "@types/human-number": "^1.0.2",
     "@types/node-notifier": "^8.0.5",
+    "better-sqlite3": "^12.4.1",
     "gradient-string": "^3.0.0",
     "human-number": "^2.0.7",
+    "i": "^0.3.7",
     "jiti": "^2.6.1",
-    "node-notifier": "^10.0.1"
+    "node-notifier": "^10.0.1",
+    "quick.db": "^9.1.7",
+    "write-file-atomic": "^7.0.0"
   }
 }
