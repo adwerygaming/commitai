@@ -82,6 +82,11 @@ export async function GeminiService() {
 
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
+            console.log("")
+            console.log(`[${Tags.AI}] Latest Changes on this repository:`)
+            console.log(last5Summaries?.[0]?.changes.join("\n") ?? "No previous summaries found.")
+            console.log("")
+
             const startTime = Date.now()
             const response = await GeminiAI.models.generateContent(geminiAIConfig);
 
