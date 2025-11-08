@@ -11,6 +11,6 @@ const databaseRootFolder = fs.existsSync(databaseRootPath) ? databaseRootPath : 
 
 console.log(`[${Tags.System}] Database folder path: ${databaseRootFolder}`);
 
-const DatabaseClient = new QuickDB({ driver: jsonDriver, filePath: path.join(databaseRootFolder, "memory.sqlite") });
+const DatabaseClient = new QuickDB({ driver: jsonDriver, filePath: path.join(databaseRootFolder, "memory.json") });
 
 export default DatabaseClient
