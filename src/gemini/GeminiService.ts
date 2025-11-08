@@ -64,10 +64,10 @@ export async function GeminiService() {
             const lastCommit = last5Summaries?.[0]
 
             const historyContextObj = last5Summaries?.map((item, index) => {
-                return `[Changes #${index}] ${item.changes.join("\n")}\n`
+                return `[Changes #${item.changesNumber}] ${item.changes.join("\n")}\n`
             })
 
-            const historyContextText = `\n[Previous commit messages summary history]\n${historyContextObj.join("\n")}\n[End of previous commit messages summary history]\n\n`
+            const historyContextText = `\n[5 Previous commit messages summary history for context]\n${historyContextObj.join("\n")}\n[End of previous commit messages summary history]\n\n`
 
             const finalPromt = `${selectedPromt}\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n${historyContextText}`
 
