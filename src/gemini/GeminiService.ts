@@ -2,6 +2,7 @@ import { type GenerateContentParameters, GenerateContentResponse, GoogleGenAI } 
 import { CommitAIService } from "../commitai/CommitAIService.js";
 import { AIPersonality, type GoogleAIModels } from "../types/CommitAITypes.js";
 import Tags from "../utils/Tags.js";
+import moment from "moment-timezone";
 
 interface LoadPromtsProp {
     personality: AIPersonality | "random";
@@ -82,10 +83,13 @@ export async function GeminiService() {
 
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
+            const diffDate = moment(last5Summaries[0]?.timestamp).fromNow();
+
+
             console.log("")
             console.log(`[${Tags.AI}] Latest Changes on this repository:`)
             console.log(last5Summaries?.[0]?.changes.join("\n") ?? "No previous summaries found.")
-            console.log("")
+            console.log(`[${Tags.AI}] Commit was made ${diffDate}.`)
 
             const startTime = Date.now()
             const response = await GeminiAI.models.generateContent(geminiAIConfig);
