@@ -8,6 +8,7 @@
 - Supports multiple AI personalities.
 - Create a summary of changes then commit them.
 - Desktop notifications for commit status.
+- Memory of past commit messages for context.
 
 ## Installation
 1. Clone the repository:
