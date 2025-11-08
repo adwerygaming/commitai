@@ -97,7 +97,6 @@ export async function GeminiService() {
 
                     console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
                 }
-                console.log(lastCommit?.changes.join("\n") ?? "No previous summaries found.")
                 console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.changes.length > 1) ? "" : "s"} were made ${diffDate}.`)
             }
 
