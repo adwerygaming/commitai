@@ -67,11 +67,9 @@ export async function GeminiService() {
                 return `[Changes #${item.changesNumber} - elapsed ${item.elapsedMs}ms @ ${item.timestamp} ]\n${item.changes.join("\n")}`
             })
 
-            const historyContextText = `\n[5 Previous commit messages summary history for context]\n${historyContextObj.join("\n")}\n[End of 5 Previous commit messages summary history for context]\n\n`
+            const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
 
-            const finalPromt = `${selectedPromt}\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n${historyContextText}`
-
-            console.log(finalPromt)
+            const finalPromt = `${selectedPromt}\n\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n\n${historyContextText}`
 
             const geminiAIConfig: GenerateContentParameters = {
                 model: GEMINI_AI_MODEL,
