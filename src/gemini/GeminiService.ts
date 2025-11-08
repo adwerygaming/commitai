@@ -61,6 +61,7 @@ export async function GeminiService() {
             const { promts: selectedPromt } = await services.LoadPromts({ personality });
 
             const last5Summaries = await CommitAIService().Database.GetLast5SummaryGitChanges(projectDir);
+            const lastCommit = last5Summaries?.[0]
 
             const historyContextObj = last5Summaries?.map((item, index) => {
                 return `[Changes #${index}] ${item.changes.join("\n")}\n`
@@ -83,13 +84,12 @@ export async function GeminiService() {
 
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
-            const diffDate = moment(last5Summaries[0]?.timestamp).fromNow();
-
+            const diffDate = moment(lastCommit?.timestamp).fromNow();
 
             console.log("")
             console.log(`[${Tags.AI}] Latest Changes on this repository:`)
-            console.log(last5Summaries?.[0]?.changes.join("\n") ?? "No previous summaries found.")
-            console.log(`[${Tags.AI}] Commit was made ${diffDate}.`)
+            console.log(lastCommit?.changes.join("\n") ?? "No previous summaries found.")
+            console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.changes.length > 1) ? "" : "s"} were made ${diffDate}.`)
 
             const startTime = Date.now()
             const response = await GeminiAI.models.generateContent(geminiAIConfig);
