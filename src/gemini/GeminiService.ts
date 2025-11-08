@@ -8,6 +8,7 @@ interface LoadPromtsProp {
 }
 
 interface SummaryGitChangesProp {
+    projectDir: string;
     gitDiffMessage: string;
     personality: AIPersonality | "random";
     showWatermark?: boolean;
@@ -53,10 +54,14 @@ export async function GeminiService() {
 
             return { promts: selectedPrompt, personality }
         },
-        SummaryGitChanges: async ({ gitDiffMessage, personality, showWatermark = false }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse> => {
+        SummaryGitChanges: async ({ gitDiffMessage, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse> => {
             console.log(`[${Tags.AI}] Selected Personality: ${personality}`)
 
             const { promts: selectedPromt } = await services.LoadPromts({ personality });
+
+            const last5Summaries = await CommitAIService().Database.GetLast5SummaryGitChanges(projectDir);
+
+            console.log(last5Summaries)
 
             const finalPromt = `${selectedPromt}\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]`
 

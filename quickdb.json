@@ -1,1 +1,40 @@
-{}
+{
+    "json": [
+        {
+            "id": "_home_masdepan_programming_commitai",
+            "value": [
+                {
+                    "changesNumber": 1,
+                    "changes": [
+                        "feat(database): add git changes tracking",
+                        "- feat(database): add project dir to key resolution",
+                        "- feat(database): implement get current changes number",
+                        "- feat(database): add summary git changes to database",
+                        "- feat(database): implement get latest summary git changes",
+                        "- feat(database): implement get all summary git changes",
+                        "- feat(database): implement get last 5 summary git changes",
+                        "- feat(commitai): integrate database for commit history",
+                        "- refactor(commitai): organize service functions",
+                        "- chore(deps): update dependencies"
+                    ],
+                    "stats": {
+                        "modelVersion": "gemini-2.5-flash-lite",
+                        "usageMetadata": {
+                            "promptTokenCount": 15358,
+                            "candidatesTokenCount": 114,
+                            "totalTokenCount": 15472,
+                            "promptTokensDetails": [
+                                {
+                                    "modality": "TEXT",
+                                    "tokenCount": 15358
+                                }
+                            ]
+                        }
+                    },
+                    "elapsedMs": 1557,
+                    "timestamp": "2025-11-08T05:39:22.411Z"
+                }
+            ]
+        }
+    ]
+}
