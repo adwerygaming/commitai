@@ -69,6 +69,7 @@ export const DatabaseService = {
                     projectPath: projectDir
                 },
                 update: {
+                    commitAIIdentifier: projectID,
                     lastModified: new Date()
                 }
             })
