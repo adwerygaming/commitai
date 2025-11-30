@@ -120,7 +120,6 @@ export const DatabaseService = {
         },
         GetLatestSummaryGitChanges: async (projectID: string) => {
             const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges(projectID)
-            console.log(`[${Tags.Debug}] total all data: ${allData.length}`)
             return allData[allData.length - 1]
         },
         GetAllSummaryGitChanges: async (projectID: string) => {

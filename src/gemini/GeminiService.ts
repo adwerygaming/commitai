@@ -66,9 +66,6 @@ export async function GeminiService() {
             const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectID);
             const lastCommit = last5Summaries?.[0]
 
-            // debug last 5 sum
-            console.log(last5Summaries)
-
             const historyContextObj = last5Summaries?.map((item) => {
                 const messages = item.messages.map((x) => x.message)
                 return `[Changes #${item.index} - ${item.createdAt} ]\n${messages.join("\n")}`
