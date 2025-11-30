@@ -58,6 +58,8 @@ export const DatabaseService = {
                 return false
             }
 
+            console.log(`[${Tags.Debug}] Project ID: ${projectID}`)
+
             const { newChangesNumber: changesNumber } = await DatabaseService.CommitAI.GetCurrentChangesNumber(projectID)
             const timestamp = new Date().toISOString()
 
