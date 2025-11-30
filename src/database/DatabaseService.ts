@@ -70,7 +70,6 @@ export const DatabaseService = {
                 },
                 update: {
                     commitAIIdentifier: projectID,
-                    lastModified: new Date()
                 }
             })
 
@@ -145,7 +144,6 @@ export const DatabaseService = {
                 index,
                 commitInfoId: commit.id,
                 createdAt: commit.createdAt,
-                lastModified: commit.lastModified,
                 messages: commit.commitMessages,
                 statistics: commit.statistics,
                 projectID: project.commitAIIdentifier,

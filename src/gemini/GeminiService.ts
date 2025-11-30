@@ -86,7 +86,7 @@ export async function GeminiService() {
 
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
-            const diffDate = moment(lastCommit?.lastModified).fromNow();
+            const diffDate = moment(lastCommit?.createdAt).fromNow();
             const latestChanges = lastCommit?.messages
 
             if (latestChanges && latestChanges.length > 0) {

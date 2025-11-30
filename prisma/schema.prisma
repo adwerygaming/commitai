@@ -27,8 +27,8 @@ model Project {
 
 // single commit
 model CommitInfo {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
   commitMessages CommitMessage[]
 
@@ -41,8 +41,8 @@ model CommitInfo {
 
 // only commit messages
 model CommitMessage {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
   message String
 
@@ -51,8 +51,8 @@ model CommitMessage {
 }
 
 model CommitStatistics {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
   modelVersion         String
   promptTokenCount     BigInt
