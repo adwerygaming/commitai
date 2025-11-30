@@ -19,7 +19,6 @@ datasource db {
 model Project {
   id                 Int      @id @default(autoincrement())
   createdAt          DateTime @default(now())
-  lastModified       DateTime @default(now())
   projectPath        String   @unique
   commitAIIdentifier String   @unique
 
@@ -30,7 +29,6 @@ model Project {
 model CommitInfo {
   id           Int      @id @default(autoincrement())
   createdAt    DateTime @default(now())
-  lastModified DateTime @default(now())
 
   commitMessages CommitMessage[]
 
@@ -45,7 +43,6 @@ model CommitInfo {
 model CommitMessage {
   id           Int      @id @default(autoincrement())
   createdAt    DateTime @default(now())
-  lastModified DateTime @default(now())
 
   message String
 
@@ -56,7 +53,6 @@ model CommitMessage {
 model CommitStatistics {
   id           Int      @id @default(autoincrement())
   createdAt    DateTime @default(now())
-  lastModified DateTime @default(now())
 
   modelVersion         String
   promptTokenCount     BigInt
