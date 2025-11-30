@@ -45,7 +45,7 @@ export function CommitAIService() {
             } catch {
                 return false
             }
-        },
+        }, 
         SendDesktopNotification: ({ message, timeout }: SendNotificationProp) => {
             notifier.notify({
                 title: 'CommitAI',
