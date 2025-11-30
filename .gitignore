@@ -37,6 +37,5 @@ quickdb.json
 quickdb2.json
 /src/generated/prisma
 
-/src/generated/prisma
-
-/src/generated/prisma
+db/
+*.sqlite
