@@ -129,7 +129,7 @@ export const DatabaseService = {
                 },
                 include: {
                     commits: {
-                        orderBy: { id: "asc" },
+                        orderBy: { id: "desc" },
                         include: {
                             commitMessages: true,
                             statistics: true
