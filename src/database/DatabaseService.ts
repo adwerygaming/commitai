@@ -123,7 +123,6 @@ export const DatabaseService = {
             return allData[allData.length - 1]
         },
         GetAllSummaryGitChanges: async (projectID: string) => {
-            console.log(`GetAllSummaryGitChanges: ${projectID}`)
             const project = await DatabaseClient.project.findUnique({
                 where: {
                     commitAIIdentifier: projectID
@@ -138,8 +137,6 @@ export const DatabaseService = {
                     }
                 }
             })
-
-            console.log(project)
 
             if (!project) return []
 

@@ -61,7 +61,9 @@ export async function GeminiService() {
 
             const { promts: selectedPromt } = await services.LoadPromts({ personality });
 
-            const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectDir);
+            const projectID = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir)
+
+            const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectID);
             const lastCommit = last5Summaries?.[0]
 
             const historyContextObj = last5Summaries?.map((item) => {
