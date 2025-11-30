@@ -1,3 +1,4 @@
+import { DatabaseService } from "../database/DatabaseService";
 import { GeminiService } from "../gemini/GeminiService";
 import type { AIPersonality } from "../types/CommitAITypes";
 import Tags from "../utils/Tags";
@@ -65,7 +66,7 @@ if (success) {
     CommitAIService().SendDesktopNotification({ message: `👍. Wasted ${summaryStats.usageMetadata?.totalTokenCount ?? 0} tokens.` })
 
     // Add to database
-    CommitAIService().Database.AddSummaryGitChanges({
+    await DatabaseService.CommitAI.AddSummaryGitChanges({
         changes: summaryData,
         stats: summaryStats,
         projectDir: callerPath,

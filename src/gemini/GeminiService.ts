@@ -1,6 +1,7 @@
 import { type GenerateContentParameters, GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import moment from "moment-timezone";
 import { CommitAIService } from "../commitai/CommitAIService.js";
+import { DatabaseService } from "../database/DatabaseService.js";
 import { AIPersonality, type GoogleAIModels } from "../types/CommitAITypes.js";
 import Tags from "../utils/Tags.js";
 
@@ -60,11 +61,11 @@ export async function GeminiService() {
 
             const { promts: selectedPromt } = await services.LoadPromts({ personality });
 
-            const last5Summaries = await CommitAIService().Database.GetLast5SummaryGitChanges(projectDir);
+            const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectDir);
             const lastCommit = last5Summaries?.[0]
 
             const historyContextObj = last5Summaries?.map((item) => {
-                return `[Changes #${item.changesNumber} - elapsed ${item.elapsedMs}ms @ ${item.timestamp} ]\n${item.changes.join("\n")}`
+                return `[Changes #${item.commitChangesId} - elapsed ${item.elapsedMs}ms @ ${item.timestamp} ]\n${item.changes.join("\n")}`
             })
 
             const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`

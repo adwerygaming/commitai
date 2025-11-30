@@ -1,7 +1,6 @@
 import { execSync } from "child_process";
 import humanNumber from "human-number";
 import notifier from 'node-notifier';
-import DatabaseClient from "../database/Client.js";
 import { type SummaryGitChangesStatsResponse } from "../gemini/GeminiService.js";
 import Tags from "../utils/Tags.js";
 
@@ -32,91 +31,8 @@ interface WriteCommitMessageResponse {
     error?: "execute_failed"
 }
 
-interface SummaryGitSummaryRecord {
-    changesNumber: number,
-    changes: string[],
-    stats: SummaryGitChangesStatsResponse,
-    elapsedMs: number,
-    timestamp: Date | string
-}
-
-interface DatabaseAddSummaryGitChangesProp extends Omit<SummaryGitSummaryRecord, "timestamp" | "changesNumber"> {
-    projectDir: string
-}
-
-
 export function CommitAIService() {
     const services = {
-        Database: {
-            ResolveProjectDirToKey: (projectDir: string) => {
-                // replaces:
-                // - any spaces
-                // - any special characters
-                // - any periods
-                // to underscores
-                return projectDir.replace(/[\s\W.]+/g, "_");
-            },
-            GetCurrentChangesNumber: async (projectDir: string) => {
-                const key = services.Database.ResolveProjectDirToKey(projectDir)
-
-                const record = await DatabaseClient.get<SummaryGitSummaryRecord[]>(key)
-                const currentChangesNumber = record?.length ?? 0
-                const newChangesNumber = currentChangesNumber + 1
-
-                return { newChangesNumber, currentChangesNumber }
-            },
-            AddSummaryGitChanges: async ({ changes, elapsedMs, projectDir, stats }: DatabaseAddSummaryGitChangesProp) => {
-                const key = services.Database.ResolveProjectDirToKey(projectDir)
-
-                if (changes.length == 0) {
-                    return false
-                }
-
-                const { newChangesNumber: changesNumber } = await services.Database.GetCurrentChangesNumber(projectDir)
-
-                const record: SummaryGitSummaryRecord = {
-                    changesNumber,
-                    changes,
-                    stats,
-                    elapsedMs,
-                    timestamp: new Date().toISOString()
-                }
-
-                console.log("")
-                console.log(`[${Tags.Debug}] Adding summary git changes to database.`)
-                console.log(`[${Tags.Debug}] Key record         : ${key}`)
-                console.log(`[${Tags.Debug}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
-                console.log(`[${Tags.Debug}] Changes Number     : #${changesNumber}`)
-                console.log(`[${Tags.Debug}] Elapsed Time       : ${elapsedMs}ms`)
-                console.log(`[${Tags.Debug}] Timestamp          : ${record.timestamp}`)
-                console.log("")
-
-                await DatabaseClient.push<SummaryGitSummaryRecord>(key, record)
-                return true
-            },
-            GetLatestSummaryGitChanges: async (projectDir: string) => {
-                const key = services.Database.ResolveProjectDirToKey(projectDir)
-
-                const record = await DatabaseClient.get<SummaryGitSummaryRecord[]>(key)
-                return record?.reverse()?.[0] ?? null
-            },
-            GetAllSummaryGitChanges: async () => {
-                const allData = await DatabaseClient.all<SummaryGitSummaryRecord[]>()
-                return allData.map(item => ({
-                    projectKey: item.id,
-                    data: item.value
-                }))
-            },
-            GetLast5SummaryGitChanges: async (projectDir: string) => {
-                const key = services.Database.ResolveProjectDirToKey(projectDir)
-
-                const allData = await services.Database.GetAllSummaryGitChanges()
-                const filteredData = allData.filter(item => item.projectKey === key).flatMap(item => item.data)
-                const last5 = filteredData.reverse().slice(0, 5)
-
-                return last5
-            }
-        },
         SendDesktopNotification: ({ message, timeout }: SendNotificationProp) => {
             notifier.notify({
                 title: 'CommitAI',

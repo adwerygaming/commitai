@@ -1,16 +1,8 @@
-import { JSONDriver, QuickDB } from "quick.db";
-import fs from "fs";
-import path from "path";
-import Tags from "../utils/Tags";
+import { PrismaClient } from "../generated/prisma/client"
+import { PrismaLibSql } from "@prisma/adapter-libsql"
 
-const jsonDriver = new JSONDriver();
-
-// __dirname is src/database
-const databaseRootPath = path.resolve(__dirname, "../../db");
-const databaseRootFolder = fs.existsSync(databaseRootPath) ? databaseRootPath : "db";
-
-console.log(`[${Tags.System}] Database folder path: ${databaseRootFolder}`);
-
-const DatabaseClient = new QuickDB({ driver: jsonDriver, filePath: path.join(databaseRootFolder, "memory.json") });
-
+const prismaLibSql = new PrismaLibSql({
+    url: process.env.DATABASE_URL!
+})
+const DatabaseClient = new PrismaClient({ adapter: prismaLibSql })
 export default DatabaseClient
