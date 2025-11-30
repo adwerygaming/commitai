@@ -120,6 +120,7 @@ export const DatabaseService = {
         },
         GetLatestSummaryGitChanges: async (projectID: string) => {
             const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges(projectID)
+            console.log(`[${Tags.Debug}] total all data: ${allData.length}`)
             return allData[allData.length - 1]
         },
         GetAllSummaryGitChanges: async (projectID: string) => {
@@ -129,7 +130,7 @@ export const DatabaseService = {
                 },
                 include: {
                     commits: {
-                        orderBy: { id: "desc" },
+                        orderBy: { id: "asc" },
                         include: {
                             commitMessages: true,
                             statistics: true
@@ -152,7 +153,7 @@ export const DatabaseService = {
         },
         GetLast5SummaryGitChanges: async (projectID: string) => {
             const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges(projectID)
-            const last5 = allData.slice(0, 5)
+            const last5 = allData.reverse().slice(0, 5)
 
             return last5
         }
