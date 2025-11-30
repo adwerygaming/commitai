@@ -72,7 +72,7 @@ export const DatabaseService = {
                     lastModified: new Date()
                 }
             })
-
+ 
             const packedCommitMessages = changes.map((x) => ({ message: x }))
 
             const packedStatistics = {
