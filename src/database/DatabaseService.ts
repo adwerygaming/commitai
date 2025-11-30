@@ -24,6 +24,7 @@ export const DatabaseService = {
             const checkIdentifierFile = fs.existsSync(commitAIIdentifierFIle)
 
             if (!checkIdentifierFile) {
+                console.log(`[${Tags.System}] No CommitAI Identifier on ${projectDir}. Creating new one...`)
                 const createIdentifierFile = await CommitAIService().CreateIdentifierFile(projectDir)
                 if (!createIdentifierFile) {
                     throw new Error("Failed to create project identifier file.")
@@ -31,6 +32,7 @@ export const DatabaseService = {
             }
 
             const identifierFile = fs.readFileSync(commitAIIdentifierFIle, "utf-8").trim() // should be uuid
+            console.log(`[${Tags.Debug}] UUID: ${identifierFile}`)
             return identifierFile
         },
         GetCurrentChangesNumber: async (projectID: string) => {
