@@ -119,7 +119,7 @@ export function CommitAIService() {
 
             const endTime = Date.now()
             const elapsed = endTime - startTime
-            return { success: true, elapsed}
+            return { success: true, elapsed }
         }
     }
 
