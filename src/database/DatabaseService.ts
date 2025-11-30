@@ -109,13 +109,13 @@ export const DatabaseService = {
             })
 
             console.log("")
-            console.log(`[${Tags.Debug}] Adding summary git changes to database.`)
-            console.log(`[${Tags.Debug}] Project ID         : ${createCommitInfo.project?.commitAIIdentifier} (${createCommitInfo.project?.id})`)
-            console.log(`[${Tags.Debug}] Project Path       : ${createCommitInfo.project?.projectPath}`)
-            console.log(`[${Tags.Debug}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
-            console.log(`[${Tags.Debug}] Changes Number     : #${changesNumber}`)
-            console.log(`[${Tags.Debug}] Elapsed Time       : ${elapsedMs}ms`)
-            console.log(`[${Tags.Debug}] Timestamp          : ${timestamp}`)
+            console.log(`[${Tags.System}] Adding summary git changes to database.`)
+            console.log(`[${Tags.System}] Project ID         : ${createCommitInfo.project?.commitAIIdentifier} (${createCommitInfo.project?.id})`)
+            console.log(`[${Tags.System}] Project Path       : ${createCommitInfo.project?.projectPath}`)
+            console.log(`[${Tags.System}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
+            console.log(`[${Tags.System}] Changes Number     : #${changesNumber}`)
+            console.log(`[${Tags.System}] Elapsed Time       : ${elapsedMs}ms`)
+            console.log(`[${Tags.System}] Timestamp          : ${timestamp}`)
             console.log("")
         },
         GetLatestSummaryGitChanges: async (projectID: string) => {
