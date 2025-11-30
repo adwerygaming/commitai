@@ -30,6 +30,7 @@
     "@types/node-notifier": "^8.0.5",
     "better-sqlite3": "^12.4.1",
     "dotenv": "^17.2.3",
+    "fs": "^0.0.1-security",
     "gradient-string": "^3.0.0",
     "human-number": "^2.0.7",
     "i": "^0.3.7",

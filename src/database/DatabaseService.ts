@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+import { CommitAIService } from "../commitai/CommitAIService";
 import type { SummaryGitChangesStatsResponse } from "../gemini/GeminiService";
 import Tags from "../utils/Tags";
 import DatabaseClient from "./Client";
@@ -16,118 +19,140 @@ interface DatabaseAddSummaryGitChangesProp extends Omit<SummaryGitSummaryRecord,
 
 export const DatabaseService = {
     CommitAI: {
-        ResolveProjectDirToKey: (projectDir: string) => {
-            // replaces:
-            // - any spaces
-            // - any special characters
-            // - any periods
-            // to underscores
-            return projectDir.replace(/[\s\W.]+/g, "_");
-        },
-        GetCurrentChangesNumber: async (projectDir: string) => {
-            const projectPath = DatabaseService.CommitAI.ResolveProjectDirToKey(projectDir)
+        ResolveProjectDirToID: async (projectDir: string) => {
+            const commitAIIdentifierFIle = path.join(projectDir, ".commitai");
+            const checkIdentifierFile = fs.existsSync(commitAIIdentifierFIle)
 
-            const record = await DatabaseClient.projectCommits.findUnique({ where: { projectPath }, include: { commits: true } })
+            if (!checkIdentifierFile) {
+                const createIdentifierFile = await CommitAIService().CreateIdentifierFile(projectDir)
+                if (!createIdentifierFile) {
+                    throw new Error("Failed to create project identifier file.")
+                }
+            }
+
+            const identifierFile = fs.readFileSync(commitAIIdentifierFIle, "utf-8").trim() // should be uuid
+            return identifierFile
+        },
+        GetCurrentChangesNumber: async (projectID: string) => {
+            // get by commit id
+            const record = await DatabaseClient.project.findUnique({
+                where: {
+                    commitAIIdentifier: projectID
+                },
+                include: {
+                    commits: true
+                }
+            })
+
             const currentChangesNumber = record?.commits.length ?? 0
             const newChangesNumber = currentChangesNumber + 1
 
             return { newChangesNumber, currentChangesNumber }
         },
         AddSummaryGitChanges: async ({ changes, elapsedMs, projectDir, stats }: DatabaseAddSummaryGitChangesProp) => {
-            const projectPath = DatabaseService.CommitAI.ResolveProjectDirToKey(projectDir)
+            const projectID = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir)
 
             if (changes.length == 0) {
                 return false
             }
 
-            const { newChangesNumber: changesNumber } = await DatabaseService.CommitAI.GetCurrentChangesNumber(projectDir)
+            const { newChangesNumber: changesNumber } = await DatabaseService.CommitAI.GetCurrentChangesNumber(projectID)
             const timestamp = new Date().toISOString()
+
+            // changes is 1 line of commit changes, 1 commit can have multiple change messages
+            const project = await DatabaseClient.project.upsert({
+                where: { commitAIIdentifier: projectID },
+                create: {
+                    commitAIIdentifier: projectID,
+                    projectPath: projectDir
+                },
+                update: {
+                    commitAIIdentifier: projectID,
+                    lastModified: new Date()
+                }
+            })
+
+            const packedCommitMessages = changes.map((x) => ({ message: x }))
+
+            const packedStatistics = {
+                modelVersion: stats?.modelVersion ?? "unknown",
+                promptTokenCount: BigInt(stats?.usageMetadata?.promptTokenCount ?? 0),
+                candidatesTokenCount: BigInt(stats?.usageMetadata?.candidatesTokenCount ?? 0),
+                totalTokenCount: BigInt(stats?.usageMetadata?.totalTokenCount ?? 0),
+                tokenCount: BigInt(stats?.usageMetadata?.totalTokenCount ?? 0),
+                modality: "none"
+            }
+
+            const createCommitInfo = await DatabaseClient.$transaction(async (p) => {
+                return p.commitInfo.create({
+                    data: {
+                        statistics: {
+                            create: packedStatistics
+                        },
+                        commitMessages: {
+                            create: packedCommitMessages
+                        },
+                        project: {
+                            connect: {
+                                id: project.id
+                            }
+                        }
+                    },
+                    include: {
+                        project: true,
+                        statistics: true,
+                        commitMessages: true,
+                        _count: true
+                    }
+                })
+            })
 
             console.log("")
             console.log(`[${Tags.Debug}] Adding summary git changes to database.`)
-            console.log(`[${Tags.Debug}] Project Path       : ${projectPath}`)
+            console.log(`[${Tags.Debug}] Project ID         : ${createCommitInfo.commitStatisticsId} (${createCommitInfo.id})`)
+            console.log(`[${Tags.Debug}] Project Path       : ${createCommitInfo.project?.projectPath}`)
             console.log(`[${Tags.Debug}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
             console.log(`[${Tags.Debug}] Changes Number     : #${changesNumber}`)
             console.log(`[${Tags.Debug}] Elapsed Time       : ${elapsedMs}ms`)
             console.log(`[${Tags.Debug}] Timestamp          : ${timestamp}`)
             console.log("")
-
-            const res = await DatabaseClient.commitData.create({
-                data: {
-                    elapsedMs,
-                    timestamp,
-                    changes: {
-                        create: {
-                            changesNumber
-                        }
-                    },
-                    stats: {
-                        create: {
-                            modelVersion: stats.modelVersion ?? "unknown",
-                            usageMetadata: {
-                                create: {
-                                    promptTokenCount: stats.usageMetadata?.promptTokenCount ?? 0,
-                                    candidatesTokenCount: stats.usageMetadata?.candidatesTokenCount ?? 0,
-                                    totalTokenCount: stats.usageMetadata?.totalTokenCount ?? 0,
-                                }
-                            }
-                        }
-                    }
-                }
-            })
-
-            for (const change of changes) {
-                await DatabaseClient.commitData.update({
-                    data: {
-                        changes: {
-                            create: {
-                                changeMessage: change
-                            }
-                        }
-                    },
-                    where: {
-                        id: res.id
-                    }
-                })
-            }
         },
-        GetLatestSummaryGitChanges: async (projectDir: string) => {
-            const projectPath = DatabaseService.CommitAI.ResolveProjectDirToKey(projectDir)
-
-            const record = await DatabaseClient.projectCommits.findMany({
-                where: { projectPath },
+        GetLatestSummaryGitChanges: async (projectID: string) => {
+            const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges(projectID)
+            return allData[allData.length - 1]
+        },
+        GetAllSummaryGitChanges: async (projectID: string) => {
+            const project = await DatabaseClient.project.findUnique({
+                where: {
+                    commitAIIdentifier: projectID
+                },
                 include: {
                     commits: {
+                        orderBy: { id: "asc" },
                         include: {
-                            stats: {
-                                include: {
-                                    usageMetadata: true
-                                }
-                            }
+                            commitMessages: true,
+                            statistics: true
                         }
                     }
                 }
-            }).then(res => res.flatMap(item => item.commits))
-
-            return record?.reverse()?.[0] ?? null
-        },
-        GetAllSummaryGitChanges: async () => {
-            const allData = await DatabaseClient.projectCommits.findMany({
-                include: {
-                    commits: true
-                }
             })
-            return allData.map(item => ({
-                projectPath: item.projectPath,
-                data: item.commits
-            }))
-        },
-        GetLast5SummaryGitChanges: async (projectDir: string) => {
-            const projectPath = DatabaseService.CommitAI.ResolveProjectDirToKey(projectDir)
 
-            const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges()
-            const filteredData = allData.filter(item => item.projectPath === projectPath).flatMap(item => item.data)
-            const last5 = filteredData.reverse().slice(0, 5)
+            if (!project) return []
+
+            return project.commits.map((commit, index) => ({
+                index,
+                commitInfoId: commit.id,
+                createdAt: commit.createdAt,
+                lastModified: commit.lastModified,
+                messages: commit.commitMessages,
+                statistics: commit.statistics,
+                projectID: project.commitAIIdentifier,
+                projectDir: project.projectPath
+            }));
+        },
+        GetLast5SummaryGitChanges: async (projectID: string) => {
+            const allData = await DatabaseService.CommitAI.GetAllSummaryGitChanges(projectID)
+            const last5 = allData.slice(0, 5)
 
             return last5
         }

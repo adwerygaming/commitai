@@ -3,6 +3,8 @@ import humanNumber from "human-number";
 import notifier from 'node-notifier';
 import { type SummaryGitChangesStatsResponse } from "../gemini/GeminiService.js";
 import Tags from "../utils/Tags.js";
+import path from "path";
+import fs from "fs";
 
 interface GetRepoDiffContentProp {
     projectDir: string;
@@ -33,6 +35,15 @@ interface WriteCommitMessageResponse {
 
 export function CommitAIService() {
     const services = {
+        CreateIdentifierFile: async (projectDir: string): Promise<boolean> => {
+            const commitAIIdentifierFIle = path.join(projectDir, ".commitai");
+            try {
+                await fs.writeFileSync(commitAIIdentifierFIle, `${crypto.randomUUID()}`);
+                return true
+            } catch {
+                return false
+            }
+        },
         SendDesktopNotification: ({ message, timeout }: SendNotificationProp) => {
             notifier.notify({
                 title: 'CommitAI',

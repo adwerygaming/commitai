@@ -65,7 +65,8 @@ export async function GeminiService() {
             const lastCommit = last5Summaries?.[0]
 
             const historyContextObj = last5Summaries?.map((item) => {
-                return `[Changes #${item.commitChangesId} - elapsed ${item.elapsedMs}ms @ ${item.timestamp} ]\n${item.changes.join("\n")}`
+                const messages = item.messages.map((x) => x.message)
+                return `[Changes #${item.index} - ${item.createdAt} ]\n${messages.join("\n")}`
             })
 
             const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
@@ -85,20 +86,22 @@ export async function GeminiService() {
 
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
-            const diffDate = moment(lastCommit?.timestamp).fromNow();
-            const latestChanges = lastCommit?.changes
+            const diffDate = moment(lastCommit?.lastModified).fromNow();
+            const latestChanges = lastCommit?.messages
 
             if (latestChanges && latestChanges.length > 0) {
                 console.log("")
                 console.log(`[${Tags.AI}] Latest Changes on this repository:`)
+                
                 for (let i = 0; i < latestChanges.length; i++) {
-                    const res = latestChanges[i];
+                    const res = latestChanges[i]?.message;
 
                     if (!res) continue;
 
                     console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
                 }
-                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.changes.length > 1) ? "" : "s"} were made ${diffDate}.`)
+
+                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.messages.length > 1) ? "" : "s"} were made ${diffDate}.`)
             }
 
             const startTime = Date.now()

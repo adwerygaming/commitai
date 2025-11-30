@@ -16,57 +16,53 @@ datasource db {
   relationMode = "foreignKeys"
 }
 
-model ProjectCommits {
-  id          Int          @id @default(autoincrement())
-  projectPath String       @unique
-  commits     CommitData[]
+model Project {
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  lastModified       DateTime @default(now())
+  projectPath        String   @unique
+  commitAIIdentifier String   @unique
+
+  commits CommitInfo[]
 }
 
-model CommitData {
-  id        Int              @id @default(autoincrement())
-  changes   CommitChange[]
-  statsId   Int              @unique // Index of changes
-  stats     CommitDataStats? @relation(fields: [statsId], references: [id])
-  elapsedMs BigInt
-  timestamp DateTime
+// single commit
+model CommitInfo {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  lastModified DateTime @default(now())
 
-  projectCommit   ProjectCommits? @relation(fields: [projectCommitId], references: [id])
-  projectCommitId Int?
+  commitMessages CommitMessage[]
+
+  statistics         CommitStatistics @relation(fields: [commitStatisticsId], references: [id])
+  commitStatisticsId Int
+
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId Int?
 }
 
-model CommitChange {
-  id            Int    @id @default(autoincrement())
-  changeMessage String
-  changesNumber Int
+// only commit messages
+model CommitMessage {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  lastModified DateTime @default(now())
 
-  commitData CommitData @relation(fields: [commitId], references: [id])
-  commitId   Int
+  message String
+
+  commitInfo   CommitInfo? @relation(fields: [commitInfoId], references: [id])
+  commitInfoId Int?
 }
 
-model CommitDataStats {
-  id           Int    @id @default(autoincrement())
-  modelVersion String
+model CommitStatistics {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  lastModified DateTime @default(now())
 
-  usageMetadata   CommitDataStatsUsageMetadata? @relation(references: [id], fields: [usageMetadataId])
-  usageMetadataId Int
-
-  commitData CommitData?
-}
-
-model CommitDataStatsUsageMetadata {
-  id                   Int    @id @default(autoincrement())
+  modelVersion         String
   promptTokenCount     BigInt
   candidatesTokenCount BigInt
   totalTokenCount      BigInt
-
-  promptTokensDetails CommitDataStatsUsageMetadataPromtTokensDetails[]
-  commitDataStats     CommitDataStats[]
-}
-
-model CommitDataStatsUsageMetadataPromtTokensDetails {
-  id              Int                          @id @default(autoincrement()) // 1, 2, 3, ...
-  modality        String
-  tokenCount      BigInt
-  usageMetadata   CommitDataStatsUsageMetadata @relation(fields: [usageMetadataId], references: [id])
-  usageMetadataId Int
+  tokenCount           BigInt
+  modality             String
+  commitInfos          CommitInfo[]
 }
