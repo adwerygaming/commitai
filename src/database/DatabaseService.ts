@@ -108,11 +108,9 @@ export const DatabaseService = {
                 })
             })
 
-            console.log(createCommitInfo)
-
             console.log("")
             console.log(`[${Tags.Debug}] Adding summary git changes to database.`)
-            console.log(`[${Tags.Debug}] Project ID         : ${createCommitInfo.commitStatisticsId} (${createCommitInfo.id})`)
+            console.log(`[${Tags.Debug}] Project ID         : ${createCommitInfo.project?.commitAIIdentifier} (${createCommitInfo.project?.id})`)
             console.log(`[${Tags.Debug}] Project Path       : ${createCommitInfo.project?.projectPath}`)
             console.log(`[${Tags.Debug}] Changes Contents   : ${changes.length} line${changes.length > 1 ? "s" : ""}`)
             console.log(`[${Tags.Debug}] Changes Number     : #${changesNumber}`)
