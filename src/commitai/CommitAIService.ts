@@ -38,7 +38,9 @@ export function CommitAIService() {
         CreateIdentifierFile: async (projectDir: string): Promise<boolean> => {
             const commitAIIdentifierFIle = path.join(projectDir, ".commitai");
             try {
-                await fs.writeFileSync(commitAIIdentifierFIle, `${crypto.randomUUID()}`);
+                const uuid = crypto.randomUUID()
+                await fs.writeFileSync(commitAIIdentifierFIle, `${uuid}`);
+                console.log(`[${Tags.System}] Created new CommitAI Identifier: ${uuid}`)
                 return true
             } catch {
                 return false
