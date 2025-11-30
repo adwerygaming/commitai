@@ -89,6 +89,8 @@ export async function GeminiService() {
             const diffDate = moment(lastCommit?.createdAt).fromNow();
             const latestChanges = lastCommit?.messages
 
+            console.log(last5Summaries)
+
             if (latestChanges && latestChanges.length > 0) {
                 console.log("")
                 console.log(`[${Tags.AI}] Latest Changes on this repository:`)
