@@ -31,6 +31,8 @@ export const DatabaseService = {
                 }
             }
 
+            await CommitAIService().DoTheGitignoreFile(projectDir)
+
             const identifierFile = fs.readFileSync(commitAIIdentifierFIle, "utf-8").trim() // should be uuid
             console.log(`[${Tags.Debug}] UUID: ${identifierFile}`)
             return identifierFile

@@ -39,3 +39,5 @@ quickdb2.json
 
 db/
 *.sqlite
+# This line was added by CommitAI.
+.commitai

@@ -33,10 +33,14 @@ interface WriteCommitMessageResponse {
     error?: "execute_failed"
 }
 
+const commitAIFilename = ".commitai"
+
 export function CommitAIService() {
     const services = {
+        // Create CommitAI Identifier file.
+        // for identifying project, ofc.
         CreateIdentifierFile: async (projectDir: string): Promise<boolean> => {
-            const commitAIIdentifierFIle = path.join(projectDir, ".commitai");
+            const commitAIIdentifierFIle = path.join(projectDir, commitAIFilename);
             try {
                 const uuid = crypto.randomUUID()
                 await fs.writeFileSync(commitAIIdentifierFIle, `${uuid}`);
@@ -46,6 +50,32 @@ export function CommitAIService() {
                 return false
             }
         },
+        // Check if project's .gitignore already have ".commitai" added or not.
+        // If not, add. that simple.
+        DoTheGitignoreFile: async (projectDir: string) => {
+            const gitignorePath = path.join(projectDir, ".gitignore");
+            const gitIgnoreFileExists = fs.existsSync(gitignorePath)
+
+            if (gitIgnoreFileExists) {
+                const content = fs.readFileSync(gitignorePath, "utf-8")
+
+                // split by newlines
+                const splitted = content?.split("\n")
+
+                const found = splitted?.filter((x) => x == commitAIFilename)
+
+                if (found.length == 0) {
+                    const addition = `\n# This line was added by CommitAI.\n${commitAIFilename}`
+                    
+                    await fs.appendFileSync(gitignorePath, addition)
+                    
+                    console.log(`[${Tags.System}] Added ${commitAIFilename} into .gitignore file..`)
+                }
+            } else {
+                console.log(`[${Tags.Debug}] no gitignore file`)
+            }
+        },
+        // This thing is for sending notification.
         SendDesktopNotification: ({ message, timeout }: SendNotificationProp) => {
             notifier.notify({
                 title: 'CommitAI',
@@ -55,8 +85,11 @@ export function CommitAIService() {
                 timeout: timeout ?? 5
             });
         },
+        // Parses project's repo diff content
         GetRepoDiffContent: async ({ projectDir }: GetRepoDiffContentProp): Promise<GetRepoDiffContentResponse> => {
             let data = null
+
+            await CommitAIService().DoTheGitignoreFile(projectDir);
 
             try {
                 data = execSync("git diff HEAD", {
@@ -73,6 +106,7 @@ export function CommitAIService() {
 
             return { data }
         },
+        // This handle pushing the summarize to git.
         WriteCommitMessage: async ({ projectDir, changes, stats, showAIWatermark }: WriteCommitMessageProp): Promise<WriteCommitMessageResponse> => {
             if (!changes || changes.length == 0) {
                 console.log(`[${Tags.Git}] Didn't receive string array of changes.`)
