@@ -8,6 +8,14 @@ import { CommitAIService } from "./CommitAIService";
 const SummaryPersonality: AIPersonality = "normal"
 const showAIWatermark = false
 
+// const argsOffset = 2
+// let args = process.argv.slice(argsOffset)
+
+// if (args.length > 0) {
+//     console.log(args)
+//     args = args.
+// }
+
 const callerPath = process.env.CALL_FROM
 
 if (!callerPath) {

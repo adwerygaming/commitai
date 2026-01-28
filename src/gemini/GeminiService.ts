@@ -30,7 +30,7 @@ export interface SummaryGitChangesStatsResponse {
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite"
+    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash" //"gemini-2.5-flash-lite"
 
     const services = {
         LoadPromts: async ({ personality }: LoadPromtsProp) => {
@@ -107,6 +107,9 @@ export async function GeminiService() {
 
             const startTime = Date.now()
             const response = await GeminiAI.models.generateContent(geminiAIConfig);
+            const endsTime = Date.now()
+            
+            console.log(`[${Tags.AI}] Elapsed ${endsTime - startTime}ms.`)
 
             const res = response?.text
             const usageMetadata = response?.usageMetadata
@@ -149,9 +152,6 @@ export async function GeminiService() {
             }
 
             console.log("")
-
-            const endsTime = Date.now()
-            console.log(`[${Tags.AI}] Elapsed ${endsTime - startTime}ms.`)
 
             return { data, stats: { modelVersion, usageMetadata} }
         }

@@ -92,7 +92,7 @@ export function CommitAIService() {
             await CommitAIService().DoTheGitignoreFile(projectDir);
 
             try {
-                data = execSync("git diff HEAD", {
+                data = execSync("git diff HEAD --no-ext-diff", {
                     cwd: projectDir,
                     stdio: "pipe",
                     encoding: "utf-8",
