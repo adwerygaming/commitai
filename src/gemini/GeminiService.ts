@@ -32,12 +32,24 @@ interface LoadPromtsResponse {
     personality: AIPersonality | "random";
 }
 
+/**
+ * Creates and returns the Gemini AI service with methods for prompt selection and git changes summarization.
+ * Initializes Google Gemini AI client with API key from environment variables.
+ * @returns {Promise<Object>} Service object with SelectPromt and SummaryGitChanges methods
+ */
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash" //"gemini-2.5-flash-lite"
 
     const services = {
+        /**
+         * Selects a prompt based on the specified AI personality.
+         * Supports normal, sarcastic, toxic, tsundere personalities, or random selection.
+         * @param {LoadPromtsProp} props - Properties for prompt selection
+         * @param {AIPersonality | "random"} props.personality - The AI personality type to use
+         * @returns {Promise<LoadPromtsResponse>} Selected prompt text and personality
+         */
         async SelectPromt({ personality }: LoadPromtsProp): Promise<LoadPromtsResponse> {
             const promts = (await import("../assets/promts.json")).default
             let selectedPrompt = null
@@ -60,6 +72,19 @@ export async function GeminiService() {
 
             return { promts: selectedPrompt, personality }
         },
+
+        /**
+         * Generates a summary of git changes using Google Gemini AI.
+         * Analyzes git diff content with historical context and selected AI personality.
+         * Sends request to Gemini API and parses the response into commit messages.
+         * @param {SummaryGitChangesProp} props - Properties for summarizing git changes
+         * @param {string} props.projectDir - The project directory path
+         * @param {string} props.gitDiffMessage - The git diff content to analyze
+         * @param {AIPersonality | "random"} props.personality - The AI personality to use
+         * @param {boolean} [props.showWatermark=false] - Whether to show AI watermark in output
+         * @returns {Promise<SummaryGitChangesResponse>} Array of commit messages and usage statistics
+         * @throws {Error} When failed to summarize git changes
+         */
         async SummaryGitChanges({ gitDiffMessage, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
             // Personality Selection
             const { promts: selectedPromt } = await this.SelectPromt({ personality });
@@ -106,6 +131,7 @@ export async function GeminiService() {
                 console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.messages.length > 1) ? "" : "s"} were made ${diffDateFromLastCommitString}.`)
             }
 
+            console.log("")
             console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
             try {
