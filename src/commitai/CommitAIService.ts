@@ -1,10 +1,10 @@
 import { execSync } from "child_process";
+import fs from "fs";
 import humanNumber from "human-number";
 import notifier from 'node-notifier';
+import path from "path";
 import { type SummaryGitChangesStatsResponse } from "../gemini/GeminiService.js";
 import Tags from "../utils/Tags.js";
-import path from "path";
-import fs from "fs";
 
 interface GetRepoDiffContentProp {
     projectDir: string;
@@ -37,22 +37,30 @@ const commitAIFilename = ".commitai"
 
 export function CommitAIService() {
     const services = {
-        // Create CommitAI Identifier file.
-        // for identifying project, ofc.
-        CreateIdentifierFile: async (projectDir: string): Promise<boolean> => {
+        /**
+         * Create CommitAI Identifier file for identifying project.
+         * @param {string} projectDir - The project directory path
+         * @returns {Promise<void>}
+         * @throws {Error} When failed to create identifier file
+         */
+        async CreateIdentifierFile(projectDir: string): Promise<void> {
             const commitAIIdentifierFIle = path.join(projectDir, commitAIFilename);
             try {
                 const uuid = crypto.randomUUID()
                 await fs.writeFileSync(commitAIIdentifierFIle, `${uuid}`);
                 console.log(`[${Tags.System}] Created new CommitAI Identifier: ${uuid}`)
-                return true
             } catch {
-                return false
+                throw new Error("failed_to_create_identifier_file");
             }
         },
-        // Check if project's .gitignore already have ".commitai" added or not.
-        // If not, add. that simple.
-        DoTheGitignoreFile: async (projectDir: string) => {
+
+        /**
+         * Check if project's .gitignore already has ".commitai" added.
+         * If not found, adds it to the .gitignore file.
+         * @param {string} projectDir - The project directory path
+         * @returns {Promise<void>}
+         */
+        async UpdateGitignoreFile(projectDir: string): Promise<void> {
             const gitignorePath = path.join(projectDir, ".gitignore");
             const gitIgnoreFileExists = fs.existsSync(gitignorePath)
 
@@ -75,8 +83,15 @@ export function CommitAIService() {
                 console.log(`[${Tags.Debug}] no gitignore file`)
             }
         },
-        // This thing is for sending notification.
-        SendDesktopNotification: ({ message, timeout }: SendNotificationProp) => {
+
+        /**
+         * Sends a desktop notification.
+         * @param {SendNotificationProp} props - Notification properties
+         * @param {string} props.message - The notification message
+         * @param {number} [props.timeout] - Notification timeout in seconds (default: 5)
+         * @returns {void}
+         */
+        SendDesktopNotification({ message, timeout }: SendNotificationProp): void {
             notifier.notify({
                 title: 'CommitAI',
                 message,
@@ -85,11 +100,17 @@ export function CommitAIService() {
                 timeout: timeout ?? 5
             });
         },
-        // Parses project's repo diff content
-        GetRepoDiffContent: async ({ projectDir }: GetRepoDiffContentProp): Promise<GetRepoDiffContentResponse> => {
+
+        /**
+         * Parses and retrieves the git repository diff content.
+         * @param {GetRepoDiffContentProp} props - Properties for getting diff
+         * @param {string} props.projectDir - The project directory path
+         * @returns {Promise<GetRepoDiffContentResponse>} The diff content or error
+         */
+        async GetRepoDiffContent({ projectDir }: GetRepoDiffContentProp): Promise<GetRepoDiffContentResponse> {
             let data = null
 
-            await CommitAIService().DoTheGitignoreFile(projectDir);
+            await this.UpdateGitignoreFile(projectDir);
 
             try {
                 data = execSync("git diff HEAD --no-ext-diff", {
@@ -106,8 +127,18 @@ export function CommitAIService() {
 
             return { data }
         },
-        // This handle pushing the summarize to git.
-        WriteCommitMessage: async ({ projectDir, changes, stats, showAIWatermark }: WriteCommitMessageProp): Promise<WriteCommitMessageResponse> => {
+
+        /**
+         * Handles writing commit message and pushing changes to git.
+         * Executes git add, git commit, and git push commands.
+         * @param {WriteCommitMessageProp} props - Properties for writing commit
+         * @param {string} props.projectDir - The project directory path
+         * @param {string[]} props.changes - Array of commit messages
+         * @param {SummaryGitChangesStatsResponse} props.stats - Statistics from AI generation
+         * @param {boolean} [props.showAIWatermark] - Whether to show AI watermark in commit
+         * @returns {Promise<WriteCommitMessageResponse>} Success status and elapsed time
+         */
+        async WriteCommitMessage({ projectDir, changes, stats, showAIWatermark }: WriteCommitMessageProp): Promise<WriteCommitMessageResponse> {
             if (!changes || changes.length == 0) {
                 console.log(`[${Tags.Git}] Didn't receive string array of changes.`)
                 return { success: false, elapsed: 0 }

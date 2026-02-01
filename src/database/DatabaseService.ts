@@ -25,13 +25,10 @@ export const DatabaseService = {
 
             if (!checkIdentifierFile) {
                 console.log(`[${Tags.System}] No CommitAI Identifier on ${projectDir}. Creating new one...`)
-                const createIdentifierFile = await CommitAIService().CreateIdentifierFile(projectDir)
-                if (!createIdentifierFile) {
-                    throw new Error("Failed to create project identifier file.")
-                }
+                await CommitAIService().CreateIdentifierFile(projectDir)
             }
 
-            await CommitAIService().DoTheGitignoreFile(projectDir)
+            await CommitAIService().UpdateGitignoreFile(projectDir)
 
             const identifierFile = fs.readFileSync(commitAIIdentifierFIle, "utf-8").trim() // should be uuid
             // console.log(`[${Tags.Debug}] UUID: ${identifierFile}`)
