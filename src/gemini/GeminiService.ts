@@ -11,7 +11,7 @@ interface LoadPromtsProp {
 
 interface SummaryGitChangesProp {
     projectDir: string;
-    gitDiffMessage: string;
+    diffContent: string;
     personality: AIPersonality | "random";
     showWatermark?: boolean;
 }
@@ -79,56 +79,56 @@ export async function GeminiService() {
          * Sends request to Gemini API and parses the response into commit messages.
          * @param {SummaryGitChangesProp} props - Properties for summarizing git changes
          * @param {string} props.projectDir - The project directory path
-         * @param {string} props.gitDiffMessage - The git diff content to analyze
+         * @param {string} props.diffContent - The git diff content to analyze
          * @param {AIPersonality | "random"} props.personality - The AI personality to use
          * @param {boolean} [props.showWatermark=false] - Whether to show AI watermark in output
          * @returns {Promise<SummaryGitChangesResponse>} Array of commit messages and usage statistics
          * @throws {Error} When failed to summarize git changes
          */
-        async SummaryGitChanges({ gitDiffMessage, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
+        async SummaryGitChanges({ diffContent, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
             // Personality Selection
-            const { promts: selectedPromt } = await this.SelectPromt({ personality });
+            const { promts: selectedPrompt } = await this.SelectPromt({ personality });
             console.log(`[${Tags.AI}] Selected Personality: ${personality}`)
 
             // Project History Context
             const projectID = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir)
-            const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectID);
-            const lastCommit = last5Summaries?.[0]
+            const recentCommits = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectID);
+            const latestCommit = recentCommits?.[0]
 
-            const historyContextObj = last5Summaries?.map((item) => {
+            const formattedCommitHistory = recentCommits?.map((item) => {
                 const messages = item.messages.map((x) => x.message)
                 return `[Changes #${item.index} - ${item.createdAt} ]\n${messages.join("\n")}`
             })
 
-            const diffDateFromLastCommitString = moment(lastCommit?.createdAt).fromNow();
-            const latestChanges = lastCommit?.messages
+            const timeSinceLastCommit = moment(latestCommit?.createdAt).fromNow();
+            const latestCommitMessages = latestCommit?.messages
 
-            const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
-            const finalPromt = `${selectedPromt}\n\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n\n${historyContextText}`
+            const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
+            const finalPrompt = `${selectedPrompt}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
 
             // Prepare Gemini Instance
-            const geminiAIConfig: GenerateContentParameters = {
+            const requestConfig: GenerateContentParameters = {
                 model: GEMINI_AI_MODEL,
-                contents: finalPromt
+                contents: finalPrompt
             }
 
-            console.log(`[${Tags.AI}] Initialized Google Gemini via API. Using Model: ${geminiAIConfig.model}.`)
+            console.log(`[${Tags.AI}] Initialized Google Gemini via API. Using Model: ${requestConfig.model}.`)
             if (showWatermark) console.log(`[${Tags.AI}] Showing AI Watermark in the end of commit message.`);
 
             // Show last commit messages
-            if (latestChanges && latestChanges.length > 0) {
+            if (latestCommitMessages && latestCommitMessages.length > 0) {
                 console.log("")
                 console.log(`[${Tags.AI}] Latest Changes on this repository:`)
                 
-                for (let i = 0; i < latestChanges.length; i++) {
-                    const res = latestChanges[i]?.message;
+                for (let i = 0; i < latestCommitMessages.length; i++) {
+                    const message = latestCommitMessages[i]?.message;
 
-                    if (!res) continue;
+                    if (!message) continue;
 
-                    console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
+                    console.log(`[${Tags.AI}] ${message.replace(/"/g, "")}`)
                 }
 
-                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.messages.length > 1) ? "" : "s"} were made ${diffDateFromLastCommitString}.`)
+                console.log(`[${Tags.AI}] Commit${(latestCommit && latestCommit?.messages.length > 1) ? "" : "s"} were made ${timeSinceLastCommit}.`)
             }
 
             console.log("")
@@ -137,16 +137,16 @@ export async function GeminiService() {
             try {
                 // Send request to Gemini AI
                 const startTime = Date.now()
-                const response = await GeminiAI.models.generateContent(geminiAIConfig);
-                const endsTime = Date.now()
+                const response = await GeminiAI.models.generateContent(requestConfig);
+                const endTime = Date.now()
 
-                console.log(`[${Tags.AI}] Elapsed ${endsTime - startTime}ms.`)
+                console.log(`[${Tags.AI}] Elapsed ${endTime - startTime}ms.`)
 
-                const res = response?.text
+                const responseText = response?.text
                 const usageMetadata = response?.usageMetadata
                 const modelVersion = response?.modelVersion
 
-                if (!res) {
+                if (!responseText) {
                     console.log(`[${Tags.AI}] AI Didn't send any response.`)
                     CommitAIService.SendDesktopNotification({ message: "AI didn't send any response." })
                     return { data: null, error: "no_response" }
@@ -154,37 +154,38 @@ export async function GeminiService() {
 
                 console.log("")
 
-                const cleanedRes = res?.replace("```json", "")?.replace("```", "")
+                const sanitizedResponse = responseText?.replace("```json", "")?.replace("```", "")
 
-                let data: string[] | null = null
+                let commitMessages: string[] | null = null
+
                 try {
-                    data = JSON?.parse(cleanedRes)
+                    commitMessages = JSON?.parse(sanitizedResponse)
                 } catch (e) {
                     console.log(`[${Tags.Error}] Failed to parse AI response as JSON.`)
                     console.error(e)
                     return { data: null, error: "parse_failed" }
                 }
 
-                if (!data || data.length == 0) {
+                if (!commitMessages || commitMessages.length == 0) {
                     console.log(`[${Tags.AI}] AI response is empty or not an array.`)
-                    console.log(data)
+                    console.log(commitMessages)
                     CommitAIService.SendDesktopNotification({ message: "AI response is empty or not an array. Please check the logs for more details." })
                     return { data: null, error: "no_response" }
                 }
 
                 console.log(`[${Tags.AI}] Cleaned Response:`)
 
-                for (let i = 0; i < data.length; i++) {
-                    const res = data[i];
+                for (let i = 0; i < commitMessages.length; i++) {
+                    const message = commitMessages[i];
 
-                    if (!res) continue;
+                    if (!message) continue;
 
-                    console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
+                    console.log(`[${Tags.AI}] ${message.replace(/"/g, "")}`)
                 }
 
                 console.log("")
 
-                return { data, stats: { modelVersion, usageMetadata } }
+                return { data: commitMessages, stats: { modelVersion, usageMetadata } }
             } catch (e) {
                 throw new Error("Failed to summarize git changes: " + e);
             }
