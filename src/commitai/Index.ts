@@ -2,7 +2,7 @@ import { DatabaseService } from "../database/DatabaseService";
 import { GeminiService } from "../gemini/GeminiService";
 import type { AIPersonality } from "../types/CommitAITypes";
 import Tags from "../utils/Tags";
-import { CommitAIService } from "./CommitAIService";
+import CommitAIService from "./CommitAIService";
 
 // Configuration
 const SummaryPersonality: AIPersonality = "normal"
@@ -26,7 +26,7 @@ if (!callerPath) {
 console.log(`[${Tags.System}] Generative Commit Message`)
 console.log(`[${Tags.System}] Called From: ${callerPath}`)
 
-const { data: repoDiffContent, error: repoDiffContentError } = await CommitAIService().GetRepoDiffContent({ projectDir: callerPath })
+const { data: repoDiffContent, error: repoDiffContentError } = await CommitAIService.GetRepoDiffContent({ projectDir: callerPath })
 
 if (repoDiffContentError) {
     if (repoDiffContentError === "not_in_repository") {
@@ -67,11 +67,11 @@ if (!summaryStats) {
     process.exit(1);
 }
 
-const { success, elapsed, error } = await CommitAIService().WriteCommitMessage({ changes: summaryData, stats: summaryStats, projectDir: callerPath, showAIWatermark });
+const { success, elapsed, error } = await CommitAIService.WriteCommitMessage({ changes: summaryData, stats: summaryStats, projectDir: callerPath, showAIWatermark });
 
 if (success) {
     console.log(`[${Tags.System}] Commit message written successfully in ${elapsed}ms.`);
-    CommitAIService().SendDesktopNotification({ message: `👍. Wasted ${summaryStats.usageMetadata?.totalTokenCount ?? 0} tokens.` })
+    CommitAIService.SendDesktopNotification({ message: `👍. Wasted ${summaryStats.usageMetadata?.totalTokenCount ?? 0} tokens.` })
 
     // Add to database
     await DatabaseService.CommitAI.AddSummaryGitChanges({

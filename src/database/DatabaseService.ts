@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { CommitAIService } from "../commitai/CommitAIService";
 import type { SummaryGitChangesStatsResponse } from "../gemini/GeminiService";
 import { type CommitMessage, type CommitStatistics } from "../generated/prisma/client";
 import Tags from "../utils/Tags";
 import DatabaseClient from "./Client";
+import CommitAIService from "../commitai/CommitAIService";
 
 interface SummaryGitSummaryRecord {
     changesNumber: number,
@@ -47,10 +47,10 @@ export const DatabaseService = {
 
             if (!checkIdentifierFile) {
                 console.log(`[${Tags.System}] No CommitAI Identifier on ${projectDir}. Creating new one...`)
-                await CommitAIService().CreateIdentifierFile(projectDir)
+                await CommitAIService.CreateIdentifierFile(projectDir)
             }
 
-            await CommitAIService().UpdateGitignoreFile(projectDir)
+            await CommitAIService.UpdateGitignoreFile(projectDir)
 
             const identifierFile = fs.readFileSync(commitAIIdentifierFIle, "utf-8").trim() // should be uuid
             // console.log(`[${Tags.Debug}] UUID: ${identifierFile}`)

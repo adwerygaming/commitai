@@ -1,6 +1,6 @@
 import { type GenerateContentParameters, GenerateContentResponse, GoogleGenAI } from "@google/genai";
 import moment from "moment-timezone";
-import { CommitAIService } from "../commitai/CommitAIService.js";
+import CommitAIService from "../commitai/CommitAIService.js";
 import { DatabaseService } from "../database/DatabaseService.js";
 import { AIPersonality, type GoogleAIModels } from "../types/CommitAITypes.js";
 import Tags from "../utils/Tags.js";
@@ -27,13 +27,18 @@ export interface SummaryGitChangesStatsResponse {
     modelVersion: GenerateContentResponse["modelVersion"]
 }
 
+interface LoadPromtsResponse {
+    promts: string | null;
+    personality: AIPersonality | "random";
+}
+
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
     const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash" //"gemini-2.5-flash-lite"
 
     const services = {
-        LoadPromts: async ({ personality }: LoadPromtsProp) => {
+        async SelectPromt({ personality }: LoadPromtsProp): Promise<LoadPromtsResponse> {
             const promts = (await import("../assets/promts.json")).default
             let selectedPrompt = null
 
@@ -55,13 +60,13 @@ export async function GeminiService() {
 
             return { promts: selectedPrompt, personality }
         },
-        SummaryGitChanges: async ({ gitDiffMessage, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse> => {
+        async SummaryGitChanges({ gitDiffMessage, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
+            // Personality Selection
+            const { promts: selectedPromt } = await this.SelectPromt({ personality });
             console.log(`[${Tags.AI}] Selected Personality: ${personality}`)
 
-            const { promts: selectedPromt } = await services.LoadPromts({ personality });
-
+            // Project History Context
             const projectID = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir)
-
             const last5Summaries = await DatabaseService.CommitAI.GetLast5SummaryGitChanges(projectID);
             const lastCommit = last5Summaries?.[0]
 
@@ -70,26 +75,22 @@ export async function GeminiService() {
                 return `[Changes #${item.index} - ${item.createdAt} ]\n${messages.join("\n")}`
             })
 
-            const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
+            const diffDateFromLastCommitString = moment(lastCommit?.createdAt).fromNow();
+            const latestChanges = lastCommit?.messages
 
+            const historyContextText = `\n[5 Previous commit messages summary history for context]\n\n${historyContextObj.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
             const finalPromt = `${selectedPromt}\n\n[Start of git head diff content]\n\n${gitDiffMessage}\n\n[End of git head diff content]\n\n${historyContextText}`
 
+            // Prepare Gemini Instance
             const geminiAIConfig: GenerateContentParameters = {
                 model: GEMINI_AI_MODEL,
                 contents: finalPromt
             }
 
             console.log(`[${Tags.AI}] Initialized Google Gemini via API. Using Model: ${geminiAIConfig.model}.`)
+            if (showWatermark) console.log(`[${Tags.AI}] Showing AI Watermark in the end of commit message.`);
 
-            if (showWatermark) {
-                console.log(`[${Tags.AI}] Showing AI Watermark in the end of commit message.`)
-            }
-
-            console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
-
-            const diffDate = moment(lastCommit?.createdAt).fromNow();
-            const latestChanges = lastCommit?.messages
-
+            // Show last commit messages
             if (latestChanges && latestChanges.length > 0) {
                 console.log("")
                 console.log(`[${Tags.AI}] Latest Changes on this repository:`)
@@ -102,58 +103,65 @@ export async function GeminiService() {
                     console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
                 }
 
-                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.messages.length > 1) ? "" : "s"} were made ${diffDate}.`)
+                console.log(`[${Tags.AI}] Commit${(lastCommit && lastCommit?.messages.length > 1) ? "" : "s"} were made ${diffDateFromLastCommitString}.`)
             }
 
-            const startTime = Date.now()
-            const response = await GeminiAI.models.generateContent(geminiAIConfig);
-            const endsTime = Date.now()
-            
-            console.log(`[${Tags.AI}] Elapsed ${endsTime - startTime}ms.`)
+            console.log(`[${Tags.AI}] Sending promt.. Waiting for response..`)
 
-            const res = response?.text
-            const usageMetadata = response?.usageMetadata
-            const modelVersion = response?.modelVersion
-
-            if (!res) {
-                console.log(`[${Tags.AI}] AI Didn't send any response.`)
-                CommitAIService().SendDesktopNotification({ message: "AI didn't send any response." })
-                return { data: null, error: "no_response" }
-            }
-
-            console.log("")
-
-            const cleanedRes = res?.replace("```json", "")?.replace("```", "")
-
-            let data: string[] | null = null
             try {
-                data = JSON?.parse(cleanedRes)
+                // Send request to Gemini AI
+                const startTime = Date.now()
+                const response = await GeminiAI.models.generateContent(geminiAIConfig);
+                const endsTime = Date.now()
+
+                console.log(`[${Tags.AI}] Elapsed ${endsTime - startTime}ms.`)
+
+                const res = response?.text
+                const usageMetadata = response?.usageMetadata
+                const modelVersion = response?.modelVersion
+
+                if (!res) {
+                    console.log(`[${Tags.AI}] AI Didn't send any response.`)
+                    CommitAIService.SendDesktopNotification({ message: "AI didn't send any response." })
+                    return { data: null, error: "no_response" }
+                }
+
+                console.log("")
+
+                const cleanedRes = res?.replace("```json", "")?.replace("```", "")
+
+                let data: string[] | null = null
+                try {
+                    data = JSON?.parse(cleanedRes)
+                } catch (e) {
+                    console.log(`[${Tags.Error}] Failed to parse AI response as JSON.`)
+                    console.error(e)
+                    return { data: null, error: "parse_failed" }
+                }
+
+                if (!data || data.length == 0) {
+                    console.log(`[${Tags.AI}] AI response is empty or not an array.`)
+                    console.log(data)
+                    CommitAIService.SendDesktopNotification({ message: "AI response is empty or not an array. Please check the logs for more details." })
+                    return { data: null, error: "no_response" }
+                }
+
+                console.log(`[${Tags.AI}] Cleaned Response:`)
+
+                for (let i = 0; i < data.length; i++) {
+                    const res = data[i];
+
+                    if (!res) continue;
+
+                    console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
+                }
+
+                console.log("")
+
+                return { data, stats: { modelVersion, usageMetadata } }
             } catch (e) {
-                console.log(`[${Tags.Error}] Failed to parse AI response as JSON.`)
-                console.error(e)
-                return { data: null, error: "parse_failed" }
+                throw new Error("Failed to summarize git changes: " + e);
             }
-
-            if (!data || data.length == 0) {
-                console.log(`[${Tags.AI}] AI response is empty or not an array.`)
-                console.log(data)
-                CommitAIService().SendDesktopNotification({ message: "AI response is empty or not an array. Please check the logs for more details." })
-                return { data: null, error: "no_response" }
-            }
-
-            console.log(`[${Tags.AI}] Cleaned Response:`)
-
-            for (let i = 0; i < data.length; i++) {
-                const res = data[i];
-
-                if (!res) continue;
-                
-                console.log(`[${Tags.AI}] ${res.replace(/"/g, "")}`)
-            }
-
-            console.log("")
-
-            return { data, stats: { modelVersion, usageMetadata} }
         }
     }
 
