@@ -44,7 +44,7 @@ if (!repoDiffContent || repoDiffContent.length === 0) {
 
 console.log(`[${Tags.System}] Found ${repoDiffContent.length} line${repoDiffContent.length > 1 ? "s" : ""} of changes.`);
 
-const { data: summaryData, error: summaryError, stats: summaryStats } = await (await GeminiService()).SummaryGitChanges({ gitDiffMessage: repoDiffContent, personality: SummaryPersonality, projectDir: callerPath, showWatermark: showAIWatermark });
+const { data: summaryData, error: summaryError, stats: summaryStats } = await (await GeminiService()).SummaryGitChanges({ diffContent: repoDiffContent, personality: SummaryPersonality, projectDir: callerPath, showWatermark: showAIWatermark });
 
 if (summaryError) {
     if (summaryError === "no_response") {
