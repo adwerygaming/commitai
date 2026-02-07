@@ -40,7 +40,7 @@ interface LoadPromtsResponse {
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash" //"gemini-2.5-flash-lite"
+    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite" //"gemini-2.5-flash-lite"
 
     const services = {
         /**

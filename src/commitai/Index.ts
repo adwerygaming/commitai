@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import { DatabaseService } from "../database/DatabaseService";
 import type { SummaryGitChangesStatsResponse } from "../gemini/GeminiService";
 import { GeminiService } from "../gemini/GeminiService";
@@ -51,6 +52,7 @@ function pluralize(count: number, singular: string, plural?: string): string {
  * @param exitCode - Exit code to use
  */
 function handleError(message: string, exitCode: number): never {
+    console.log("")
     console.log(`[${Tags.Error}] ${message}`);
     process.exit(exitCode);
 }
@@ -86,6 +88,20 @@ async function fetchGitDiff(projectDir: string): Promise<string> {
     }
 
     if (!gitDiffContent || gitDiffContent.length === 0) {
+        const projectId = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir);
+        const lastChanges = await DatabaseService.CommitAI.GetLatestSummaryGitChanges(projectId);
+
+        if (lastChanges && lastChanges?.messages.length > 0) {
+            console.log(`[${Tags.Git}] Latest committed changes:`);
+            
+            for (let i = 0; i < lastChanges?.messages.length; i++) {
+                const res = lastChanges.messages[i];
+                console.log(`[${Tags.Git}] ${res?.message}`)
+            }
+
+            const timeSinceLastCommit = moment(lastChanges?.createdAt).fromNow();
+            console.log(`[${Tags.Git}] These changes were committed ${timeSinceLastCommit}.`);
+        }
         handleError(ERROR_MESSAGES.NO_CHANGES, CONFIG.exitCodes.GIT_ERROR);
     }
 
