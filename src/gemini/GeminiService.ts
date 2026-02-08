@@ -1,4 +1,5 @@
 import { type GenerateContentParameters, GenerateContentResponse, GoogleGenAI } from "@google/genai";
+import axios from "axios";
 import moment from "moment-timezone";
 import CommitAIService from "../commitai/CommitAIService.js";
 import { DatabaseService } from "../database/DatabaseService.js";
@@ -32,6 +33,11 @@ interface LoadPromtsResponse {
     personality: AIPersonality | "random";
 }
 
+interface SendRequestProps {
+    useProxy: boolean,
+    promt: string,
+}
+
 /**
  * Creates and returns the Gemini AI service with methods for prompt selection and git changes summarization.
  * Initializes Google Gemini AI client with API key from environment variables.
@@ -40,9 +46,58 @@ interface LoadPromtsResponse {
 export async function GeminiService() {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GeminiAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash-lite" //"gemini-2.5-flash-lite"
+    const GEMINI_AI_MODEL: GoogleAIModels = "gemini-2.5-flash" //"gemini-2.5-flash-lite"
+
+    // Proxy Setup
+    const proxyUrl = process.env.PROXY_BASEURL
+    const proxyApiKey = process.env.PROXY_APIKEY
+    const useProxy = true;
 
     const services = {
+        async sendRequest({ useProxy, promt }: SendRequestProps) {
+            // Prepare Gemini Instance
+            const requestConfig: GenerateContentParameters = {
+                model: GEMINI_AI_MODEL,
+                contents: promt
+            }
+
+            if (!useProxy) {
+                // google
+                const response = await GeminiAI.models.generateContent(requestConfig)
+                return response
+            } else {
+                // proxy
+                console.log(`[${Tags.System}] Using proxy for Gemini API request.`)
+                
+                if (!proxyUrl || !proxyApiKey) {
+                    throw new Error("Proxy URL or API Key is not set in environment variables.")
+                }
+                
+                const { data, status } = await axios.post(`${proxyUrl}/generate/text`, {
+                    contents: promt,
+                }, {
+                    headers: {
+                        "x-api-key": proxyApiKey
+                    },
+                    validateStatus: () => true
+                })
+
+                const res = data?.data?.data
+
+                if (!res) {
+                    return null
+                } 
+
+                const output = {
+                    text: res?.content ?? null,
+                    usageMetadata: res?.metadata,
+                    modelVersion: res?.metadata?.model
+                }
+
+                return output
+            }
+        },
+
         /**
          * Selects a prompt based on the specified AI personality.
          * Supports normal, sarcastic, toxic, tsundere personalities, or random selection.
@@ -137,10 +192,12 @@ export async function GeminiService() {
             try {
                 // Send request to Gemini AI
                 const startTime = Date.now()
-                const response = await GeminiAI.models.generateContent(requestConfig);
+                const response = await this.sendRequest({ useProxy, promt: finalPrompt })
                 const endTime = Date.now()
 
                 console.log(`[${Tags.AI}] Elapsed ${endTime - startTime}ms.`)
+
+                console.log(response)
 
                 const responseText = response?.text
                 const usageMetadata = response?.usageMetadata
