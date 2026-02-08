@@ -73,7 +73,7 @@ export async function GeminiService() {
                     throw new Error("Proxy URL or API Key is not set in environment variables.")
                 }
                 
-                const { data, status } = await axios.post(`${proxyUrl}/generate/text`, {
+                const { data } = await axios.post(`${proxyUrl}/generate/text`, {
                     contents: promt,
                 }, {
                     headers: {
@@ -196,8 +196,6 @@ export async function GeminiService() {
                 const endTime = Date.now()
 
                 console.log(`[${Tags.AI}] Elapsed ${endTime - startTime}ms.`)
-
-                console.log(response)
 
                 const responseText = response?.text
                 const usageMetadata = response?.usageMetadata
