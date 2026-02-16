@@ -5,6 +5,7 @@ import notifier from 'node-notifier';
 import path from "path";
 import { type SummaryGitChangesStatsResponse } from "../gemini/GeminiService.js";
 import Tags from "../utils/Tags.js";
+import CommitAIHelper from "./CommitAIServiceHelper.js";
 
 interface GetRepoDiffContentProp {
     projectDir: string;
@@ -36,6 +37,8 @@ interface WriteCommitMessageResponse {
 const commitAIFilename = ".commitai"
 
 const CommitAIService = {
+    Helper: CommitAIHelper,
+    
     /**
      * Create CommitAI Identifier file for identifying project.
      * @param {string} projectDir - The project directory path

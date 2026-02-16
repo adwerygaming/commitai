@@ -15,6 +15,7 @@ interface SummaryGitChangesProp {
     diffContent: string;
     personality: AIPersonality | "random";
     showWatermark?: boolean;
+    context?: string;
 }
 
 interface SummaryGitChangesResponse {
@@ -140,7 +141,7 @@ export async function GeminiService() {
          * @returns {Promise<SummaryGitChangesResponse>} Array of commit messages and usage statistics
          * @throws {Error} When failed to summarize git changes
          */
-        async SummaryGitChanges({ diffContent, personality, showWatermark = false, projectDir }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
+        async SummaryGitChanges({ diffContent, personality, showWatermark = false, projectDir, context }: SummaryGitChangesProp): Promise<SummaryGitChangesResponse>{
             // Personality Selection
             const { promts: selectedPrompt } = await this.SelectPromt({ personality });
             console.log(`[${Tags.AI}] Selected Personality: ${personality}`)
@@ -158,8 +159,9 @@ export async function GeminiService() {
             const timeSinceLastCommit = moment(latestCommit?.createdAt).fromNow();
             const latestCommitMessages = latestCommit?.messages
 
-            const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\n`
-            const finalPrompt = `${selectedPrompt}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
+            const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\nThe user context: ${context}\n\n`
+            const contextSection = context ? ` [User Context]\n${context}\n[End User Context]` : "";
+            const finalPrompt = `${selectedPrompt}\n\n${contextSection}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
 
             // Prepare Gemini Instance
             const requestConfig: GenerateContentParameters = {

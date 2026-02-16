@@ -36,17 +36,6 @@ const ERROR_MESSAGES = {
 } as const;
 
 /**
- * Pluralizes a word based on count.
- * @param count - The count to check
- * @param singular - The singular form
- * @param plural - Optional plural form (defaults to singular + 's')
- * @returns The pluralized string
- */
-function pluralize(count: number, singular: string, plural?: string): string {
-    return count === 1 ? singular : (plural || `${singular}s`);
-}
-
-/**
  * Handles errors by logging and exiting with appropriate code.
  * @param message - Error message to display
  * @param exitCode - Exit code to use
@@ -63,11 +52,11 @@ function handleError(message: string, exitCode: number): never {
  */
 function validateEnvironment(): string {
     const projectDir = process.env.CALL_FROM;
-    
+
     if (!projectDir) {
         handleError(ERROR_MESSAGES.NO_PROJECT_DIR, CONFIG.exitCodes.ENV_ERROR);
     }
-    
+
     return projectDir;
 }
 
@@ -105,7 +94,7 @@ async function fetchGitDiff(projectDir: string): Promise<string> {
         handleError(ERROR_MESSAGES.NO_CHANGES, CONFIG.exitCodes.GIT_ERROR);
     }
 
-    console.log(`[${Tags.System}] Found ${gitDiffContent.length} ${pluralize(gitDiffContent.length, "line")} of changes.`);
+    console.log(`[${Tags.System}] Found ${gitDiffContent.length} ${CommitAIService.Helper.pluralize(gitDiffContent.length, "line")} of changes.`);
     
     return gitDiffContent;
 }
@@ -114,14 +103,16 @@ async function fetchGitDiff(projectDir: string): Promise<string> {
  * Generates commit message summary using AI.
  * @param diffContent - The git diff content
  * @param projectDir - The project directory path
+ * @param context - Optional additional context for AI generation
  * @returns Object containing commit messages and statistics
  */
-async function generateCommitSummary(diffContent: string, projectDir: string): Promise<GenerateCommitSummaryResponse> {
+async function generateCommitSummary(diffContent: string, projectDir: string, context?: string): Promise<GenerateCommitSummaryResponse> {
     const { data: commitMessages, error, stats } = await (await GeminiService()).SummaryGitChanges({ 
         diffContent, 
         personality: CONFIG.personality, 
         projectDir, 
-        showWatermark: CONFIG.showAIWatermark 
+        showWatermark: CONFIG.showAIWatermark,
+        context
     });
 
     if (error === "no_response") {
@@ -172,7 +163,7 @@ async function commitAndPush(commitMessages: string[], stats: SummaryGitChangesS
  */
 function formatTokenUsage(stats: SummaryGitChangesStatsResponse): string {
     const tokenCount = stats.usageMetadata?.totalTokenCount ?? 0;
-    return `👍 Wasted ${tokenCount} ${pluralize(tokenCount, "token")}.`;
+    return `👍 Wasted ${tokenCount} ${CommitAIService.Helper.pluralize(tokenCount, "token")}.`;
 }
 
 /**
@@ -213,14 +204,17 @@ async function handleSuccessfulCommit(commitMessages: string[], stats: SummaryGi
  */
 async function main(): Promise<void> {
     try {
+        const args = process.argv.slice(2);
+        const contextMsg = args.join(" ") ?? "No additional context provided.";
+
         console.log(`[${Tags.System}] Generative Commit Message`);
-        
+
         const projectDir = validateEnvironment();
         console.log(`[${Tags.System}] Called From: ${projectDir}`);
         
         const diffContent = await fetchGitDiff(projectDir);
         
-        const { messages: commitMessages, stats } = await generateCommitSummary(diffContent, projectDir);
+        const { messages: commitMessages, stats } = await generateCommitSummary(diffContent, projectDir, contextMsg);
         
         const elapsed = await commitAndPush(commitMessages, stats, projectDir);
         
