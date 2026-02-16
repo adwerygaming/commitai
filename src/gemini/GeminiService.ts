@@ -159,8 +159,8 @@ export async function GeminiService() {
             const timeSinceLastCommit = moment(latestCommit?.createdAt).fromNow();
             const latestCommitMessages = latestCommit?.messages
 
-            const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]\n\nThe user context: ${context}\n\n`
-            const contextSection = context ? ` [User Context]\n${context}\n[End User Context]` : "";
+            const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]`
+            const contextSection = context ? `[Start User Context]\nThe user provided context. Please pay attention to this context: ${context}\n[End for User Context]` : "";
             const finalPrompt = `${selectedPrompt}\n\n${contextSection}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
 
             console.log(finalPrompt)
