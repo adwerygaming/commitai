@@ -163,6 +163,8 @@ export async function GeminiService() {
             const contextSection = context ? ` [User Context]\n${context}\n[End User Context]` : "";
             const finalPrompt = `${selectedPrompt}\n\n${contextSection}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
 
+            console.log(finalPrompt)
+
             // Prepare Gemini Instance
             const requestConfig: GenerateContentParameters = {
                 model: GEMINI_AI_MODEL,
