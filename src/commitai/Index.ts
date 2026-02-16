@@ -209,6 +209,10 @@ async function main(): Promise<void> {
 
         console.log(`[${Tags.System}] Generative Commit Message`);
 
+        if (contextMsg.length > 0) {
+            console.log(`[${Tags.System}] Additional context provided: "${contextMsg}"`);
+        }
+
         const projectDir = validateEnvironment();
         console.log(`[${Tags.System}] Called From: ${projectDir}`);
         
