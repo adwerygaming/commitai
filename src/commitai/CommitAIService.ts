@@ -114,8 +114,17 @@ const CommitAIService = {
 
         await this.UpdateGitignoreFile(projectDir);
 
+        const ignoredFiles: string[] = [
+            "package-lock.json",
+            "yarn.lock",
+            "pnpm-lock.yaml",
+            "*.lock",
+        ]
+
+        const ignoredArgs = ignoredFiles.map((x) => `":!"${x}"`).join(" ")
+
         try {
-            data = execSync("git diff HEAD --no-ext-diff", {
+            data = execSync(`git diff HEAD -- ${ignoredArgs}`, {
                 cwd: projectDir,
                 stdio: "pipe",
                 encoding: "utf-8",
