@@ -121,10 +121,12 @@ const CommitAIService = {
             "*.lock",
         ]
 
-        const ignoredArgs = ignoredFiles.map((x) => `":!"${x}"`).join(" ")
+        const ignoredArgs = ignoredFiles.map((x) => `:!"${x}"`).join(" ")
 
         try {
-            data = execSync(`git diff HEAD -- ${ignoredArgs}`, {
+            const command = `git diff HEAD -- ${ignoredArgs}`
+            console.log(`[${Tags.Git}] Running command: ${command}`)
+            data = execSync(command, {
                 cwd: projectDir,
                 stdio: "pipe",
                 encoding: "utf-8",
