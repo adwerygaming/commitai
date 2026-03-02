@@ -159,6 +159,12 @@ export async function GeminiService() {
             const timeSinceLastCommit = moment(latestCommit?.createdAt).fromNow();
             const latestCommitMessages = latestCommit?.messages
 
+            const maxDiffLength = 87000; // Set a maximum length for the diff content to avoid token limit issues
+            if (diffContent.length >= maxDiffLength) {
+                diffContent = diffContent.slice(0, maxDiffLength) 
+                console.log(`[${Tags.AI}] Git diff content was too long and has been truncated to fit the maximum token limit.`)
+            }
+
             const historyPromptSection = `\n[5 Previous commit messages summary history for context]\n\n${formattedCommitHistory.join("\n\n")}\n\n[End of 5 Previous commit messages summary history for context]`
             const contextSection = context ? `[Start User Context]\nThe user provided context. Please pay attention to this context: ${context}\n[End for User Context]` : "";
             const finalPrompt = `${selectedPrompt}\n\n${contextSection}\n\n[Start of git head diff content]\n\n${diffContent}\n\n[End of git head diff content]\n\n${historyPromptSection}`
