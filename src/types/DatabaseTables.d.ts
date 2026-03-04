@@ -11,7 +11,7 @@ export interface ProjectSchema extends BaseDatabaseSchema {
 
 export interface CommitSchema extends BaseDatabaseSchema {
     project_id: string
-    changes: string[]
+    changes: string // actually this is string[]
 }
 
 export interface StatSchema extends BaseDatabaseSchema {

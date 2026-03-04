@@ -30,7 +30,9 @@ type GenerateProxyProp = UnionGenerateProp
 
 interface GenerateResult {
     content: string[]
-    usageMetadata?: Partial<GenerateContentResponseUsageMetadata>
+    usageMetadata?: Partial<GenerateContentResponseUsageMetadata> & {
+        model: string
+    }
 }
 
 export class Gemini {
@@ -113,21 +115,23 @@ export class Gemini {
             }
 
             const res = data?.data?.data
-            const aiResponse = res.content
+            const aiContent = res.content
+            const aiMetadata: GenerateResult["usageMetadata"] = res.metadata
 
-            if (!aiResponse) {
+            if (!aiContent) {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
                 return { content: [] }
             }
 
-            const sanitizedResponse = this.sanitizeResponse(aiResponse)
+            const sanitizedResponse = this.sanitizeResponse(aiContent)
 
             const parsedContent = JSON.parse(sanitizedResponse) as string[]
 
             console.log(`[${Tags.AI}] Parsed AI Contents: ${parsedContent?.length ?? 0} change${parsedContent?.length > 1 ? "s" : ""}`)
 
             return {
-                content: parsedContent
+                content: parsedContent,
+                usageMetadata: aiMetadata
             }
         } catch (e) {
             console.log(`[${Tags.Error}] Generate Error.`)
@@ -189,7 +193,10 @@ export class Gemini {
 
             return {
                 content: parsedContent,
-                usageMetadata
+                usageMetadata: {
+                    model,
+                    ...usageMetadata
+                }
             }
         } catch (e) {
             console.log(`[${Tags.Error}] Generate Error.`)

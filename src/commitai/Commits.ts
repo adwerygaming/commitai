@@ -17,7 +17,7 @@ export class Commits {
     async add(changes: string[]): Promise<CommitSchema> {
         const [res] = await this.db()
             .insert({
-                changes,
+                changes: JSON.stringify(changes),
                 project_id: this.projectId
             })
             .returning("*")

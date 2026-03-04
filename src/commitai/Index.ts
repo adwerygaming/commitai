@@ -1,7 +1,9 @@
 import { Gemini } from "../gemini/Gemini.js";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
+import { Commits } from "./Commits.js";
 import { Projects } from "./Projects.js";
+import { Stats } from "./Stats.js";
 
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
@@ -59,11 +61,25 @@ const ai = await gemini.generate({
 })
 
 const aiResponse = ai.content
+const aiUsage = ai.usageMetadata
 
 if (aiResponse.length == 0) {
     console.log(`[${Tags.CommitAI}] There is nothing to push.`)
     process.exit(1)
 }
+
+console.log(aiResponse)
+
+// log
+const commit = new Commits(project.id)
+const addCommitRes = await commit.add(aiResponse)
+const stat = new Stats(addCommitRes.id)
+await stat.add({
+    model_version: aiUsage?.model ?? "Unknown Model",
+    prompt_token_count: aiUsage?.promptTokenCount ?? 0,
+    total_token_count: aiUsage?.totalTokenCount ?? 0,
+    candidates_token_count: aiUsage?.candidatesTokenCount ?? 0,
+})
 
 console.log("")
 const pushResult = await commitAI.push(aiResponse)
