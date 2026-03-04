@@ -46,7 +46,7 @@ export class Gemini {
         return client
     }
 
-    private sanitizeResponse(dirtyResponse: string) {
+    private sanitizeResponse(dirtyResponse: string): string {
         const sanitized = dirtyResponse?.replace("```json", "")?.replace("```", "")
         return sanitized
     }
@@ -120,8 +120,6 @@ export class Gemini {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
                 return { content: [] }
             }
-
-            console.log(aiResponse)
 
             const sanitizedResponse = this.sanitizeResponse(aiResponse)
 

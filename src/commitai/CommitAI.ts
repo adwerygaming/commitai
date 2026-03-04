@@ -95,14 +95,13 @@ export class CommitAI {
         // STEP 2 - COMMIT
         console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
         const commit = await this.git().commit(changes)
-        console.log(commit)
+        console.log(`[${Tags.Git}] Commit ID: ${commit.commit}`)
 
-        const currentBranch = this.currentBranch()
+        const currentBranch = await this.currentBranch()
         console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 
         // STEP 3 - PUSH
-        const push = await this.git().push()
-        console.log(push)
+        await this.git().push()
 
         return true
     }
