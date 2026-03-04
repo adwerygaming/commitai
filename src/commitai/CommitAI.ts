@@ -28,6 +28,9 @@ export class CommitAI {
 
     async checkGitIgnoreFile(): Promise<true> {
         const ignoreFilePath = path.join(this.directoryPath, ".gitignore")
+        if (!fs.existsSync(ignoreFilePath)) {
+            fs.writeFileSync(ignoreFilePath, "")
+        }
         const ignoreFileContentRaw = fs.readFileSync(ignoreFilePath, "utf-8")
         const ignoreFileContents = ignoreFileContentRaw.split("\n").filter((x) => x.length > 0 && !x.startsWith("#"))
 

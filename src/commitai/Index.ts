@@ -29,7 +29,7 @@ const gemini = new Gemini()
 const repoCheck = await commitAI.isRepo()
 
 if (!repoCheck) {
-    console.log(`[${Tags.CommitAI}] This directory dosen't appear to be a git repo. Make sure to init first.`)
+    console.log(`[${Tags.CommitAI}] This directory doesn't appear to be a git repo. Make sure to init first.`)
     process.exit(1)
 }
 
@@ -49,7 +49,7 @@ const gitDiffContent = await commitAI.fetchGitChanges()
 console.log("")
 
 if (!gitDiffContent) {
-    console.log(`[${Tags.CommitAI}] This repo dosen't have any tracked changes.`)
+    console.log(`[${Tags.CommitAI}] This repo doesn't have any tracked changes.`)
     process.exit(1)
 }
 
