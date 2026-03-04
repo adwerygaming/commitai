@@ -1,1 +1,1 @@
-import "./commitai/Index"
+import "./commitai/Index.js";

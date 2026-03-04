@@ -37,7 +37,16 @@ quickdb.json
 quickdb2.json
 /src/generated/prisma
 
-db/
+# MasDepan's list
+db/*.sqlite
+package-lock.json
+Summary.txt
 *.sqlite
-# This line was added by CommitAI.
-.commitai
+test/*
+test/
+
+*.lnk
+
+# This line was added by .commitai
+# This is a directory for storing commitai stuff to make commit generation better
+.commitai/*
