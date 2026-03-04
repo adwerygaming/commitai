@@ -141,17 +141,35 @@ Address several minor issues and improve code quality
 
     <details>
     <summary><b>Windows</b></summary>
+
     1. Open `wcm.bat` and update the `cd` path to match where you cloned the repository:
         ```bat
         cd /d "C:\Your\Path\To\commitai" || exit /b 1
         ```
     2. Add the `commitai` directory to your system `PATH`:
-    - Open **Start** → search **"Environment Variables"**
-    - Under **System variables**, find `Path` → click **Edit**
-    - Click **New** and add the full path to your `commitai` folder (e.g. `C:\Your\Path\To\commitai`)
-    - Click **OK** to save
+        - Open **Start** → search **"Environment Variables"**
+        - Under **System variables**, find `Path` → click **Edit**
+        - Click **New** and add the full path to your `commitai` folder (e.g. `C:\Your\Path\To\commitai`)
+        - Click **OK** to save
     3. Open a new terminal and you can now run `wcm` from any git project directory!
     </details>
 
 > [!NOTE]
 > If you wondering, wcm stands for "Write Commit Message".
+
+### Usage
+1. Navigate to any git project directory:
+    ```bash
+    cd /path/to/your/git/project
+    ```
+2. Run `wcm` with optional context:
+    ```bash
+    wcm "refactored auth module"
+    ```
+3. The AI will generate a commit message based on the git changes and the provided context, then automatically commit and push the changes. [See example output above](#result).
+
+### Customizing AI Behavior
+You can create a `.commitai/commitai.md` file in your project root to provide project-specific context and guidelines for the AI. This can include preferred commit message styles, important areas to focus on, or any other relevant information that can help the AI generate better commit messages for your project
+
+### Contributing
+Contributions are welcome! Please open an issue or submit a pull request with your improvements.
