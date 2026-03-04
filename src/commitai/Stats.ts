@@ -1,6 +1,6 @@
-import { Knex } from "knex"
+import { type Knex } from "knex"
 import DatabaseClient from "../database/Client.js"
-import { StatSchema } from "../types/DatabaseTables.js"
+import { type StatSchema } from "../types/DatabaseTables.js"
 
 type AddCommitStatProp = Omit<StatSchema, "id" | "created_at" | "last_updated_at" | "commit_id">
 

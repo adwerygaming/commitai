@@ -1,9 +1,9 @@
-import { Knex } from "knex"
+import { type Knex } from "knex"
 import fs from "node:fs"
 import path from "node:path"
 import { v7 as uuidv7 } from 'uuid'
 import DatabaseClient from "../database/Client.js"
-import { ProjectSchema } from "../types/DatabaseTables.js"
+import { type ProjectSchema } from "../types/DatabaseTables.js"
 import Tags from "../utils/Tags.js"
 
 export class Projects {
@@ -41,7 +41,7 @@ export class Projects {
         // example: /home/masdepan/programming/[commitai] <--- this
         // res: commitai
         // fallback to uuid if failed. just in case ehehe.
-        const projectName = this.directoryPath.split("/").at(-1) ?? uuidv7()
+        const projectName = path.basename(this.directoryPath) || uuidv7()
         
         const [res] = await this.db()
             .insert({
@@ -63,8 +63,8 @@ export class Projects {
         const contextFile = fs.existsSync(contextFilePath)
 
         if (!contextFile) {
-            console.log(`[${Tags.Info}] This project dosen't have CommitAI.md file`)
-            console.log(`[${Tags.Info}] You can make the commit messages better by specifing context on commitai.md.`)
+            console.log(`[${Tags.Info}] This project doesn't have CommitAI.md file`)
+            console.log(`[${Tags.Info}] You can make the commit messages better by specifying context on commitai.md.`)
             return null
         } else {
             console.log(`[${Tags.CommitAI}] Loaded ${project?.name} CommitAI.md`)

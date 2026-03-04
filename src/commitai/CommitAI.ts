@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { SimpleGit, simpleGit } from 'simple-git';
+import { type SimpleGit, simpleGit } from 'simple-git';
 import Tags from '../utils/Tags.js';
 
 export class CommitAI {    
@@ -53,7 +53,7 @@ export class CommitAI {
     }
 
     async fetchGitChanges(): Promise<string | null> {
-        const checkRepo = this.isRepo()
+        const checkRepo = await this.isRepo()
         if (!checkRepo) return null
 
         const ignoredFiles: string[] = [
@@ -69,7 +69,8 @@ export class CommitAI {
         const untrackedFiles = await this.git().raw(['ls-files', '--others', '--exclude-standard'])
         const changes = [trackedDiff, untrackedFiles].filter(Boolean).join("\n")
 
-        console.log(`[${Tags.Git}] Found ${changes.length} lines of changes.`)
+        const lineCount = changes?.split(/\r?\n/)?.length
+        console.log(`[${Tags.Git}] Found ${lineCount} lines of changes.`)
 
         return changes
     }
@@ -79,28 +80,34 @@ export class CommitAI {
     }
 
     async push(changes: string[]): Promise<boolean> {
-        // STEP 1 - ADD THE FILES
-        await this.git().add(".")
-        console.log(`[${Tags.Git}] Added "." files on this project.`)
+        try {
+            // STEP 1 - ADD THE FILES
+            await this.git().add(".")
+            console.log(`[${Tags.Git}] Added "." files on this project.`)
 
-        // STEP 2 - COMMIT
-        const title = changes[0]
-        const body = changes.slice(1).join("\n")
+            // STEP 2 - COMMIT
+            const title = changes[0]
+            const body = changes.slice(1).join("\n")
 
-        console.log("")
-        console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
-        changes.forEach((change) => console.log(`[${Tags.Git}] ${change}`))
+            console.log("")
+            console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
+            changes.forEach((change) => console.log(`[${Tags.Git}] ${change}`))
 
-        const commitMessages = [title, body].filter(Boolean)
-        await this.git().commit(commitMessages)
+            const commitMessages = [title, body].filter(Boolean)
+            await this.git().commit(commitMessages)
 
-        const currentBranch = await this.currentBranch()
-        console.log("")
-        console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
+            const currentBranch = await this.currentBranch()
+            console.log("")
+            console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 
-        // STEP 3 - PUSH
-        await this.git().push()
+            // STEP 3 - PUSH
+            await this.git().push()
 
-        return true
+            return true
+        } catch (e) {
+            console.log(`[${Tags.Error}] Failed to push.`)
+            console.error(e)
+            return false
+        }
     }
 }

@@ -1,6 +1,6 @@
-import { Knex } from "knex"
+import { type Knex } from "knex"
 import DatabaseClient from "../database/Client.js"
-import { CommitSchema } from "../types/DatabaseTables.js"
+import { type CommitSchema } from "../types/DatabaseTables.js"
 
 export class Commits {
     private readonly projectId: string

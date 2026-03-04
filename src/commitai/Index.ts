@@ -89,4 +89,4 @@ if (pushResult) {
     console.log(`[${Tags.CommitAI}] Push Failed.`)
 }
 
-process.exit(1)
+process.exit(0)

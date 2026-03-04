@@ -1,4 +1,4 @@
-import { GenerateContentParameters, GenerateContentResponseUsageMetadata, GoogleGenAI } from "@google/genai";
+import { type GenerateContentParameters, type GenerateContentResponseUsageMetadata, GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import fs from "node:fs/promises";
 import path from "node:path";
