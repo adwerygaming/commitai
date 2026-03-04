@@ -1,6 +1,6 @@
 <div align="center">
     <h1>CommitAI</h1>
-    <p>AI-powered commit message generator for Git. Powered by <a href="https://gemini.google.com">Google Gemini AI.</a></p>
+    <p><b>Writing commit messages has never been this easy!</b> Powered by <a href="https://gemini.google.com">Google Gemini</a></p>
 </div>
 
 ## How it works
@@ -87,3 +87,71 @@ Address several minor issues and improve code quality
 - docs(context): fix typos in CommitAI.md informational messages
 - fix(scripts): ensure arguments are passed correctly in shell scripts
 ```
+
+### Requirements
+- A Laptop / Computer
+- OS: Linux / Windows
+- Node.js v21+
+- Git installed and available in PATH
+- Docker & Docker Compose
+
+> [!IMPORTANT]
+> Docker here is required for hosting the database (postgres). See [the docker compose file](./docker/docker-compose.yml) for details. You can also connect to an external Postgres instance by setting the appropriate environment variables.
+
+### Installation
+1. Clone the repository:
+    ```bash
+    git clone https://adwerygaming/commitai.git
+    cd commitai
+    ```
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
+3. Copy [`.env.example`](./.env.example) to `.env` and fill in the required environment variables.
+4. Do the same for docker, copy [`.env.example`](./docker/.env.example) to `docker/.env` and fill in the required environment variables for the database connection.
+5. Start the database using Docker Compose:
+    ```bash
+    cd docker
+    docker-compose up -d
+    ```
+    Make sure the database is running and accessible with the credentials you provided in the `.env` file.
+6. Setup the `wcm` command. Please follow the instructions below depending on your OS
+    <details>
+    <summary><b>Linux</b></summary>
+
+    1. Make the shell script executable:
+        ```bash
+        chmod +x wcm.sh
+        ```
+    2. Open `wcm.sh` and update the `cd` path to match where you cloned the repository:
+        ```bash
+        cd /your/path/to/commitai || exit 1
+        ```
+    3. Add an alias to your shell config (`~/.bashrc`, `~/.zshrc`, etc.):
+        ```bash
+        alias wcm='/your/path/to/commitai/wcm.sh'
+        ```
+    4. Reload your shell config:
+        ```bash
+        source ~/.zshrc  # or ~/.bashrc
+        ```
+    5. You can now run `wcm` from any git project directory!
+    </details>
+
+    <details>
+    <summary><b>Windows</b></summary>
+    1. Open `wcm.bat` and update the `cd` path to match where you cloned the repository:
+        ```bat
+        cd /d "C:\Your\Path\To\commitai" || exit /b 1
+        ```
+    2. Add the `commitai` directory to your system `PATH`:
+    - Open **Start** → search **"Environment Variables"**
+    - Under **System variables**, find `Path` → click **Edit**
+    - Click **New** and add the full path to your `commitai` folder (e.g. `C:\Your\Path\To\commitai`)
+    - Click **OK** to save
+    3. Open a new terminal and you can now run `wcm` from any git project directory!
+    </details>
+
+> [!NOTE]
+> If you wondering, wcm stands for "Write Commit Message".
