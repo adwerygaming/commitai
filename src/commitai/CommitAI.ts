@@ -69,6 +69,8 @@ export class CommitAI {
         const untrackedFiles = await this.git().raw(['ls-files', '--others', '--exclude-standard'])
         const changes = [trackedDiff, untrackedFiles].filter(Boolean).join("\n")
 
+        console.log(`[${Tags.Git}] Found ${changes.length} lines of changes.`)
+
         return changes
     }
 

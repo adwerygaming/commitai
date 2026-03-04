@@ -40,11 +40,11 @@ console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
 console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)
 console.log(`[${Tags.CommitAI}] Working on branch   : ${branch}`)
 
-console.log("")
 const projectContext = await projects.fetchContext()
 console.log("")
 
 const gitDiffContent = await commitAI.fetchGitChanges()
+console.log("")
 
 if (!gitDiffContent) {
     console.log(`[${Tags.CommitAI}] This repo dosen't have any tracked changes.`)
