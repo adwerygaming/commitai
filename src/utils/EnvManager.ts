@@ -8,6 +8,7 @@ import Tags from "./Tags.js";
 // Make sure to sync this.
 // Default value are: z.string()
 const envSchema = z.object({
+    MASDEPAN_DEV_ENV: z.enum(["1", "0"]).optional(),
     NODE_ENV: z.enum(["PROD", "DEV"]).optional(),
 
     DB_HOST: z.string(),
@@ -17,7 +18,7 @@ const envSchema = z.object({
     DB_PASSWORD: z.string(),
 
     GEMINI_API_KEY: z.string(),
-    
+
     MASDEPAN_PROXY_APIKEY: z.string(),
     MASDEPAN_PROXY_BASEURL: z.string()
 })

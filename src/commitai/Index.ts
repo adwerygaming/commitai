@@ -1,4 +1,5 @@
 import { Gemini } from "../gemini/Gemini.js";
+import { env } from "../utils/EnvManager.js";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
 import { Commits } from "./Commits.js";
@@ -8,7 +9,7 @@ import { Stats } from "./Stats.js";
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
 const userContext = args.join(" ");
-const useProxy = true
+const useProxy = env.MASDEPAN_DEV_ENV ? true : false
 
 console.log("")
 console.log(`[${Tags.CommitAI}] Generative Commit Message`);
