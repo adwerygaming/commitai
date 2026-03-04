@@ -1,8 +1,17 @@
-import { PrismaClient } from "../generated/prisma/client"
-import { PrismaLibSql } from "@prisma/adapter-libsql"
+import Knex from "knex";
+import { env } from "../utils/EnvManager.js";
+import { DatabaseTables } from "../types/DatabaseTables.js";
 
-const prismaLibSql = new PrismaLibSql({
-    url: process.env.DATABASE_URL!
-})
-const DatabaseClient = new PrismaClient({ adapter: prismaLibSql })
+const DatabaseClient = Knex<DatabaseTables>({
+    client: 'pg',
+    connection: {
+        host: env.DB_HOST,
+        port: parseInt(env.DB_PORT),
+        user: env.DB_USER,
+        database: env.DB_NAME,
+        password: env.DB_PASSWORD,
+        ssl: env.DB_SSL
+    },
+});
+
 export default DatabaseClient

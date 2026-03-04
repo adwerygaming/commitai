@@ -3,6 +3,7 @@ import gradient from 'gradient-string';
 const RawTags = {
   System: {colors: ['#66FF66', '#00CC66']},
   Git: {colors: ['#ff8566ff', '#cc9c00ff']},
+  CommitAI: {colors: ['#870907', '#8c0d6e']},
   AI: {colors: ['#66a3ffff', '#007accff']},
   Info: {colors: ['#A463BF', '#8E43AD']},
   Error: {colors: ['#C0382B', '#E84B3C']},

@@ -1,15 +1,34 @@
 import js from "@eslint/js";
-import globals from "globals";
+import type { Linter } from "eslint";
 import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
 
-export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
-  tseslint.configs.recommended,
+const config: Linter.FlatConfig[] = [
+  js.configs.recommended,
+
+  ...tseslint.configs.recommended,
+
   {
-    "rules": {
-      "@typescript-eslint/no-explicit-any": "off", 
-      "@typescript-eslint/no-empty-object-type": "off"
+    files: ["**/*.ts"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: "./tsconfig.eslint.json",
+        sourceType: "module"
+      }
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/explicit-function-return-type": "error",
+      "@typescript-eslint/explicit-module-boundary-types": "error",
+      "@typescript-eslint/no-inferrable-types": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
     }
   },
-]);
+
+  {
+    ignores: ["dist", "build", "node_modules", "docker"]
+  }
+];
+
+export default config;

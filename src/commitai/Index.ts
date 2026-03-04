@@ -1,234 +1,70 @@
-import moment from "moment-timezone";
-import { DatabaseService } from "../database/DatabaseService";
-import type { SummaryGitChangesStatsResponse } from "../gemini/GeminiService";
-import { GeminiService } from "../gemini/GeminiService";
-import type { AIPersonality } from "../types/CommitAITypes";
-import Tags from "../utils/Tags";
-import CommitAIService from "./CommitAIService";
+import { Gemini } from "../gemini/Gemini.js";
+import Tags from "../utils/Tags.js";
+import { CommitAI } from "./CommitAI.js";
+import { Projects } from "./Projects.js";
 
-interface GenerateCommitSummaryResponse {
-    messages: string[];
-    stats: SummaryGitChangesStatsResponse;
+const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
+const args = process.argv.slice(2);
+const userContext = args.join(" ");
+const useProxy = true
+
+console.log("")
+console.log(`[${Tags.System}] Generative Commit Message`);
+
+if (!projectDir) {
+    console.log(`[${Tags.Error}] Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.`)
+    process.exit(1);
 }
 
-// Configuration
-const CONFIG = {
-    personality: "normal" as AIPersonality,
-    showAIWatermark: false,
-    exitCodes: {
-        SUCCESS: 0,
-        ENV_ERROR: 1,
-        GIT_ERROR: 2,
-        AI_ERROR: 3,
-        COMMIT_ERROR: 4
-    }
-} as const;
-
-const ERROR_MESSAGES = {
-    NO_PROJECT_DIR: "No project directory found. Please run using the .sh file.",
-    NOT_IN_REPO: "Not in a git repository. Please run this command inside a git repository.",
-    NO_CHANGES: "No changes found in the repository.",
-    NO_AI_RESPONSE: "No response from AI.",
-    PARSE_FAILED: "Failed to parse AI response.",
-    NO_SUMMARY_DATA: "No summary data received from AI.",
-    NO_STATS: "No stats received from AI.",
-    COMMIT_FAILED: "Failed to write commit message"
-} as const;
-
-/**
- * Handles errors by logging and exiting with appropriate code.
- * @param message - Error message to display
- * @param exitCode - Exit code to use
- */
-function handleError(message: string, exitCode: number): never {
-    console.log("")
-    console.log(`[${Tags.Error}] ${message}`);
-    process.exit(exitCode);
+if (userContext.length > 0) {
+    console.log(`[${Tags.System}] Additional user context provided: "${userContext}"`);
 }
 
-/**
- * Validates that the project directory environment variable is set.
- * @returns The validated project directory path
- */
-function validateEnvironment(): string {
-    const projectDir = process.env.CALL_FROM;
+const commitAI = new CommitAI(projectDir)
+const projects = new Projects(projectDir)
+const gemini = new Gemini()
 
-    if (!projectDir) {
-        handleError(ERROR_MESSAGES.NO_PROJECT_DIR, CONFIG.exitCodes.ENV_ERROR);
-    }
+const repoCheck = await commitAI.isRepo()
 
-    return projectDir;
+if (!repoCheck) {
+    console.log(`[${Tags.System}] This directory dosen't appear to be a git repo. Make sure to init first.`)
+    process.exit(1)
 }
 
-/**
- * Fetches git diff content from the project directory.
- * @param projectDir - The project directory path
- * @returns The git diff content
- */
-async function fetchGitDiff(projectDir: string): Promise<string> {
-    const { data: gitDiffContent, error } = await CommitAIService.GetRepoDiffContent({ 
-        projectDir 
-    });
+const project = await projects.init()
+const branch = await commitAI.currentBranch()
+await commitAI.checkGitIgnoreFile()
 
-    if (error === "not_in_repository") {
-        handleError(ERROR_MESSAGES.NOT_IN_REPO, CONFIG.exitCodes.GIT_ERROR);
-    } else if (error) {
-        handleError(`Failed to get git diff content: ${error}`, CONFIG.exitCodes.GIT_ERROR);
-    }
+console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
+console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)
+console.log(`[${Tags.CommitAI}] Working on branch   : ${branch}`)
 
-    if (!gitDiffContent || gitDiffContent.length === 0) {
-        const projectId = await DatabaseService.CommitAI.ResolveProjectDirToID(projectDir);
-        const lastChanges = await DatabaseService.CommitAI.GetLatestSummaryGitChanges(projectId);
+const projectContext = await projects.fetchContext()
+const gitDiffContent = await commitAI.fetchGitChanges()
 
-        if (lastChanges && lastChanges?.messages.length > 0) {
-            console.log(`[${Tags.Git}] Latest committed changes:`);
-            
-            for (let i = 0; i < lastChanges?.messages.length; i++) {
-                const res = lastChanges.messages[i];
-                console.log(`[${Tags.Git}] ${res?.message}`)
-            }
-
-            const timeSinceLastCommit = moment(lastChanges?.createdAt).fromNow();
-            console.log(`[${Tags.Git}] These changes were committed ${timeSinceLastCommit}.`);
-        }
-        handleError(ERROR_MESSAGES.NO_CHANGES, CONFIG.exitCodes.GIT_ERROR);
-    }
-
-    console.log(`[${Tags.System}] Found ${gitDiffContent.length} ${CommitAIService.Helper.pluralize(gitDiffContent.length, "line")} of changes.`);
-    
-    return gitDiffContent;
+if (!gitDiffContent) {
+    console.log(`[${Tags.CommitAI}] ${project.name} (${project.project_path}) dosen't have any changes.`)
+    process.exit(1)
 }
 
-/**
- * Generates commit message summary using AI.
- * @param diffContent - The git diff content
- * @param projectDir - The project directory path
- * @param context - Optional additional context for AI generation
- * @returns Object containing commit messages and statistics
- */
-async function generateCommitSummary(diffContent: string, projectDir: string, context?: string): Promise<GenerateCommitSummaryResponse> {
-    const { data: commitMessages, error, stats } = await (await GeminiService()).SummaryGitChanges({ 
-        diffContent, 
-        personality: CONFIG.personality, 
-        projectDir, 
-        showWatermark: CONFIG.showAIWatermark,
-        context
-    });
+const ai = await gemini.generate({
+    content: gitDiffContent,
+    additionalContext: userContext,
+    projectContext,
+    useProxy
+})
 
-    if (error === "no_response") {
-        handleError(ERROR_MESSAGES.NO_AI_RESPONSE, CONFIG.exitCodes.AI_ERROR);
-    } else if (error === "parse_failed") {
-        handleError(ERROR_MESSAGES.PARSE_FAILED, CONFIG.exitCodes.AI_ERROR);
-    } else if (error) {
-        handleError(`Failed to summarize git changes: ${error}`, CONFIG.exitCodes.AI_ERROR);
-    }
+const aiResponse = ai.content
 
-    if (!commitMessages || commitMessages.length === 0) {
-        handleError(ERROR_MESSAGES.NO_SUMMARY_DATA, CONFIG.exitCodes.AI_ERROR);
-    }
-
-    if (!stats) {
-        handleError(ERROR_MESSAGES.NO_STATS, CONFIG.exitCodes.AI_ERROR);
-    }
-
-    return { messages: commitMessages, stats };
+if (aiResponse.length == 0) {
+    console.log(`[${Tags.CommitAI}] There is nothing to push.`)
+    process.exit(1)
 }
 
-/**
- * Commits and pushes changes with generated messages.
- * @param commitMessages - Array of commit messages
- * @param stats - Statistics from AI generation
- * @param projectDir - The project directory path
- * @returns The elapsed time in milliseconds
- */
-async function commitAndPush(commitMessages: string[], stats: SummaryGitChangesStatsResponse, projectDir: string): Promise<number> {
-    const { success, elapsed, error } = await CommitAIService.WriteCommitMessage({ 
-        changes: commitMessages, 
-        stats, 
-        projectDir, 
-        showAIWatermark: CONFIG.showAIWatermark 
-    });
+const pushResult = await commitAI.push(aiResponse)
 
-    if (!success) {
-        handleError(`${ERROR_MESSAGES.COMMIT_FAILED}: ${error}`, CONFIG.exitCodes.COMMIT_ERROR);
-    }
-
-    return elapsed ?? 0;
+if (pushResult) {
+    console.log(`[${Tags.CommitAI}] OK!`)
+} else {
+    console.log(`[${Tags.CommitAI}] Push Failed.`)
 }
-
-/**
- * Formats token usage for display.
- * @param stats - Statistics from AI generation
- * @returns Formatted token usage string
- */
-function formatTokenUsage(stats: SummaryGitChangesStatsResponse): string {
-    const tokenCount = stats.usageMetadata?.totalTokenCount ?? 0;
-    return `👍 Wasted ${tokenCount} ${CommitAIService.Helper.pluralize(tokenCount, "token")}.`;
-}
-
-/**
- * Records commit information to the database.
- * @param commitMessages - Array of commit messages
- * @param stats - Statistics from AI generation
- * @param projectDir - The project directory path
- * @param elapsed - Elapsed time in milliseconds
- */
-async function recordToDatabase(commitMessages: string[], stats: SummaryGitChangesStatsResponse, projectDir: string, elapsed: number): Promise<void> {
-    await DatabaseService.CommitAI.AddSummaryGitChanges({
-        changes: commitMessages,
-        stats,
-        projectDir,
-        elapsedMs: elapsed,
-    });
-}
-
-/**
- * Handles successful commit by notifying user and recording to database.
- * @param commitMessages - Array of commit messages
- * @param stats - Statistics from AI generation
- * @param projectDir - The project directory path
- * @param elapsed - Elapsed time in milliseconds
- */
-async function handleSuccessfulCommit(commitMessages: string[], stats: SummaryGitChangesStatsResponse, projectDir: string, elapsed: number): Promise<void> {
-    console.log(`[${Tags.System}] Commit message written successfully in ${elapsed}ms.`);
-    
-    CommitAIService.SendDesktopNotification({ 
-        message: formatTokenUsage(stats)
-    });
-
-    await recordToDatabase(commitMessages, stats, projectDir, elapsed);
-}
-
-/**
- * Main execution function for generating and committing AI-powered commit messages.
- */
-async function main(): Promise<void> {
-    try {
-        const args = process.argv.slice(2);
-        const contextMsg = args.join(" ") ?? "No additional context provided.";
-
-        console.log(`[${Tags.System}] Generative Commit Message`);
-
-        if (contextMsg.length > 0) {
-            console.log(`[${Tags.System}] Additional context provided: "${contextMsg}"`);
-        }
-
-        const projectDir = validateEnvironment();
-        console.log(`[${Tags.System}] Called From: ${projectDir}`);
-        
-        const diffContent = await fetchGitDiff(projectDir);
-        
-        const { messages: commitMessages, stats } = await generateCommitSummary(diffContent, projectDir, contextMsg);
-        
-        const elapsed = await commitAndPush(commitMessages, stats, projectDir);
-        
-        await handleSuccessfulCommit(commitMessages, stats, projectDir, elapsed);
-        
-        process.exit(CONFIG.exitCodes.SUCCESS);
-    } catch (error) {
-        console.error(`[${Tags.Error}] Unexpected error:`, error);
-        process.exit(CONFIG.exitCodes.ENV_ERROR);
-    }
-}
-
-main(); 

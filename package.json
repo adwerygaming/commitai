@@ -1,44 +1,45 @@
 {
-  "name": "commitai-bun-ver",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
+  "name": "commit-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "bun ./src/index.ts --watch",
-    "start": "bun ./src/index.ts",
-    "eslint": "bunx eslint .",
-    "updatedb": "bunx prisma format && bunx prisma generate && bunx prisma migrate dev --name init"
+    "dev": "nodemon",
+    "start": "npx tsx ./src/index.ts",
+    "lint": "eslint .",
+    "build": "tsup"
+  },
+  "keywords": [],
+  "author": "adwerygaming",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=21"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/bun": "latest",
-    "eslint": "^9.39.1",
-    "globals": "^16.5.0",
-    "prisma": "^7.0.1",
-    "typescript-eslint": "^8.46.3"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/node": "^25.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "jiti": "^2.6.1",
+    "nodemon": "^3.1.11",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0"
   },
   "dependencies": {
-    "@google/genai": "^1.29.0",
-    "@prisma/adapter-libsql": "^7.0.1",
-    "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/client": "^7.0.1",
-    "@prisma/extension-accelerate": "^3.0.0",
-    "@types/human-number": "^1.0.2",
-    "@types/node-notifier": "^8.0.5",
-    "axios": "^1.13.4",
-    "better-sqlite3": "^12.4.1",
-    "dotenv": "^17.2.3",
-    "fs": "^0.0.1-security",
+    "@google/genai": "^1.43.0",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
     "gradient-string": "^3.0.0",
-    "human-number": "^2.0.7",
-    "i": "^0.3.7",
-    "jiti": "^2.6.1",
+    "knex": "^3.1.0",
     "moment-timezone": "^0.6.0",
     "node-notifier": "^10.0.1",
-    "quick.db": "^9.1.7",
-    "write-file-atomic": "^7.0.0"
+    "pg": "^8.19.0",
+    "simple-git": "^3.32.3",
+    "uuid": "^13.0.0",
+    "zod": "^4.3.6"
   }
 }
