@@ -38,7 +38,7 @@ export class CommitAI {
 
         if (!ignoreFileContents.includes(entryValue)) {
             console.log(`[${Tags.CommitAI}] Added .commitai entry on .gitignore file`)
-            const newEntry = `# This line was added by .commitai\n# This is a directory for storing commitai stuff to make commit generation better\n${entryValue}`
+            const newEntry = `\n\n# This line was added by .commitai\n# This is a directory for storing commitai stuff to make commit generation better\n${entryValue}`
             fs.appendFileSync(ignoreFilePath, newEntry)
         }
 

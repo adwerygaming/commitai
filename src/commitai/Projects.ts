@@ -56,16 +56,18 @@ export class Projects {
     }
 
     async fetchContext(): Promise<string | null> {
+        const project = await this.resolve()
         const commitAIDirPath = path.join(this.directoryPath, ".commitai")
 
         const contextFilePath = path.join(commitAIDirPath, "commitai.md")
         const contextFile = fs.existsSync(contextFilePath)
 
         if (!contextFile) {
-            console.log(`[${Tags.Info}] This project dosen't have commitai.md file`)
+            console.log(`[${Tags.Info}] This project dosen't have CommitAI.md file`)
             console.log(`[${Tags.Info}] You can make the commit messages better by specifing context on commitai.md.`)
             return null
         } else {
+            console.log(`[${Tags.CommitAI}] Loaded ${project?.name} CommitAI.md`)
             const content = fs.readFileSync(contextFilePath, "utf-8")
             return content
         }
