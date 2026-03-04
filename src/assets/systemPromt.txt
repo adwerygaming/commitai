@@ -17,7 +17,7 @@ A single plain sentence summarizing the overall change. No prefix, no dash, no t
   - "Fix token limit error when diff is too large"
 
 ### Second to last items — Body lines
-Each line describes one specific change using this format:
+Each line describes one specific change using this format (HYPHEN MUST BE INCLUDED, IMPORTANT!):
   - (type): short description
 
 Where type is one of: feat, fix, refactor, chore, docs, style, test, perf
