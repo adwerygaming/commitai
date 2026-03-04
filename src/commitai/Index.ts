@@ -68,8 +68,6 @@ if (aiResponse.length == 0) {
     process.exit(1)
 }
 
-console.log(aiResponse)
-
 // log
 const commit = new Commits(project.id)
 const addCommitRes = await commit.add(aiResponse)
