@@ -87,9 +87,12 @@ export class CommitAI {
         }
 
         // STEP 2 - COMMIT
+        const formattedMessages = changes.join("\n")
+        console.log(formattedMessages)
+        
         console.log("")
         console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
-        const commit = await this.git().commit(changes)
+        const commit = await this.git().commit(formattedMessages)
         console.log(`[${Tags.Git}] Commit ID: ${commit?.commit ?? "None"}`)
 
         const currentBranch = await this.currentBranch()
