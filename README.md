@@ -1,6 +1,14 @@
 <div align="center">
     <h1>CommitAI</h1>
     <p><b>Writing commit messages has never been this easy!</b> Powered by <a href="https://gemini.google.com">Google Gemini</a></p>
+    <br/>
+    <img src="https://img.shields.io/badge/Node.js-v21+-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"/>
+    <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
+    <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+    <img src="https://img.shields.io/badge/Docker-required-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+    <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey?style=for-the-badge" alt="Platform"/>
+    <br/>
+    <img src="https://img.shields.io/github/stars/adwerygaming/commitai?style=for-the-badge" alt="GitHub Stars"/>
 </div>
 
 ## How it works
