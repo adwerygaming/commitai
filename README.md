@@ -155,21 +155,33 @@ Address several minor issues and improve code quality
     </details>
 
 > [!NOTE]
-> If you wondering, wcm stands for "Write Commit Message".
+> If you're wondering, wcm stands for "Write Commit Message".
 
 ### Usage
 1. Navigate to any git project directory:
     ```bash
     cd /path/to/your/git/project
     ```
-2. Run `wcm` with optional context:
+2. Run `wcm` with an optional **user context** — a short one-line hint passed as an argument to guide the AI:
     ```bash
     wcm "refactored auth module"
     ```
+    The user context is a quick, per-run message. Use it to hint at what you changed or what tone the commit message should have.
 3. The AI will generate a commit message based on the git changes and the provided context, then automatically commit and push the changes. [See example output above](#result).
 
-### Customizing AI Behavior
-You can create a `.commitai/commitai.md` file in your project root to provide project-specific context and guidelines for the AI. This can include preferred commit message styles, important areas to focus on, or any other relevant information that can help the AI generate better commit messages for your project
+> [!IMPORTANT]
+> The output quality depends on **user context** (the argument you pass) and **project context** (the `.commitai/commitai.md` file, recommended to set up). Without either, the AI will generate a more generic commit message based solely on the git diff.
+
+### Customizing AI Behavior (Project Context)
+You can create a `.commitai/commitai.md` file in the **root of your project** (where you run `wcm`) to provide **project context** — persistent, project-specific instructions that are sent to the AI on every run.
+
+Useful things to put in it:
+- What the project is about
+- Preferred commit message style or tone
+- Areas or modules to pay special attention to
+- Anything else that helps the AI understand your project better
+
+CommitAI will automatically add `.commitai/*` to your `.gitignore` so the file stays local.
 
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request with your improvements.
