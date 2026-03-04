@@ -2,17 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SimpleGit, simpleGit } from 'simple-git';
 import Tags from '../utils/Tags.js';
-import { Projects } from "./Projects.js";
 
 export class CommitAI {    
     private readonly directoryPath: string
-    private readonly project: Projects
 
     constructor (
         directoryPath: string
     ) {
         this.directoryPath = directoryPath
-        this.project = new Projects(directoryPath)
     }
 
     git(): SimpleGit {

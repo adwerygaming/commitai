@@ -47,7 +47,7 @@ console.log("")
 const gitDiffContent = await commitAI.fetchGitChanges()
 
 if (!gitDiffContent) {
-    console.log(`[${Tags.CommitAI}] ${project.name} (${project.project_path}) dosen't have any changes.`)
+    console.log(`[${Tags.CommitAI}] This repo dosen't have any tracked changes.`)
     process.exit(1)
 }
 
