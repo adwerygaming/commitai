@@ -78,22 +78,19 @@ export class CommitAI {
 
     async push(changes: string[]): Promise<boolean> {
         // STEP 1 - ADD THE FILES
-        // TODO: add exepctions
         await this.git().add(".")
         console.log(`[${Tags.Git}] Added "." files on this project.`)
-        for (let i = 0; i < changes.length; i++) {
-            const change = changes[i];
-            console.log(`[${Tags.Git}] ${change}`)
-        }
 
         // STEP 2 - COMMIT
-        const formattedMessages = changes.map((x) => `-m "${x}"`).join(" ")
-        console.log(formattedMessages)
+        const title = changes[0]
+        const body = changes.slice(1).join("\n")
 
         console.log("")
         console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
-        await this.git().raw("commit", formattedMessages)
-        // console.log(`[${Tags.Git}] Commit ID: ${commit?.commit ?? "None"}`)
+        changes.forEach((change) => console.log(`[${Tags.Git}] ${change}`))
+
+        const commitMessages = [title, body].filter(Boolean)
+        await this.git().commit(commitMessages)
 
         const currentBranch = await this.currentBranch()
         console.log("")
