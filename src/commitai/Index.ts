@@ -9,7 +9,7 @@ const userContext = args.join(" ");
 const useProxy = true
 
 console.log("")
-console.log(`[${Tags.System}] Generative Commit Message`);
+console.log(`[${Tags.CommitAI}] Generative Commit Message`);
 
 if (!projectDir) {
     console.log(`[${Tags.Error}] Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.`)
@@ -17,7 +17,7 @@ if (!projectDir) {
 }
 
 if (userContext.length > 0) {
-    console.log(`[${Tags.System}] Additional user context provided: "${userContext}"`);
+    console.log(`[${Tags.CommitAI}] Additional user context provided: "${userContext}"`);
 }
 
 const commitAI = new CommitAI(projectDir)
@@ -27,7 +27,7 @@ const gemini = new Gemini()
 const repoCheck = await commitAI.isRepo()
 
 if (!repoCheck) {
-    console.log(`[${Tags.System}] This directory dosen't appear to be a git repo. Make sure to init first.`)
+    console.log(`[${Tags.CommitAI}] This directory dosen't appear to be a git repo. Make sure to init first.`)
     process.exit(1)
 }
 
@@ -39,7 +39,10 @@ console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
 console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)
 console.log(`[${Tags.CommitAI}] Working on branch   : ${branch}`)
 
+console.log("")
 const projectContext = await projects.fetchContext()
+console.log("")
+
 const gitDiffContent = await commitAI.fetchGitChanges()
 
 if (!gitDiffContent) {
@@ -61,7 +64,10 @@ if (aiResponse.length == 0) {
     process.exit(1)
 }
 
+console.log("")
 const pushResult = await commitAI.push(aiResponse)
+console.log("")
+
 
 if (pushResult) {
     console.log(`[${Tags.CommitAI}] OK!`)

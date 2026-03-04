@@ -72,8 +72,6 @@ export class CommitAI {
         const untrackedFiles = await this.git().raw(['ls-files', '--others', '--exclude-standard'])
         const changes = [trackedDiff, untrackedFiles].filter(Boolean).join("\n")
 
-        console.log(changes.length)
-
         return changes
     }
 
@@ -85,7 +83,7 @@ export class CommitAI {
         // STEP 1 - ADD THE FILES
         // TODO: add exepctions
         const addFiles = await this.addFiles()
-        console.log(`[${Tags.CommitAI}] Added "." files on this project: ${addFiles}`)
+        console.log(`[${Tags.Git}] Added "." files on this project: ${addFiles}`)
 
         for (let i = 0; i < changes.length; i++) {
             const change = changes[i];
