@@ -152,7 +152,7 @@ export class Gemini {
                     type: "array",
                     items: { type: "string" },
                     minItems: 1,
-                    maxItems: 25
+                    maxItems: 20
                 }
             }
         }
