@@ -83,7 +83,6 @@ export class Gemini {
 
     private async generateUsingProxy({ finalPrompt, systemPrompt }: GenerateProxyProp): Promise<GenerateResult> {
         console.log(`[${Tags.AI}] Generating using MasDepan's Proxy.`)
-        console.log("")
 
         const PROXY_APIKEY = env.MASDEPAN_PROXY_APIKEY
         const PROXY_BASEURL = env.MASDEPAN_PROXY_BASEURL
@@ -139,7 +138,6 @@ export class Gemini {
 
     private async generateUsingGemini({ systemPrompt, finalPrompt, model }: GenerateGeminiProp): Promise<GenerateResult> {
         console.log(`[${Tags.AI}] Generating using Google Gemini.`)
-        console.log("")
 
         const client = await this.createClient()
 
