@@ -7,6 +7,7 @@
 <div align="center">
     <img src="./assets//images/the_flow.png" alt="CommitAI Flow" width="90%"/>
 </div>
+<br/>
 
 1. **Run `wcm`** from any project directory (optionally with context: `wcm "refactored auth module"`)
 2. **Read working directory** — the script captures your current directory and passes it to CommitAI
