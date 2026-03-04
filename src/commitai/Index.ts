@@ -68,9 +68,10 @@ console.log("")
 const pushResult = await commitAI.push(aiResponse)
 console.log("")
 
-
 if (pushResult) {
     console.log(`[${Tags.CommitAI}] OK!`)
 } else {
     console.log(`[${Tags.CommitAI}] Push Failed.`)
 }
+
+process.exit(1)
