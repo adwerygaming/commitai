@@ -98,10 +98,10 @@ Address several minor issues and improve code quality
 
 ### Requirements
 - A Laptop / Computer
-- OS: Linux / Windows
-- Node.js v21+
-- Git installed and available in PATH
-- Docker & Docker Compose
+- OS: [Linux](https://archlinux.org) / [Windows](https://www.microsoft.com/en-us/software-download/windows11)
+- [Node.js](https://nodejs.org) v21+
+- [Git](https://git-scm.com) installed and available in PATH
+- [Docker & Docker Compose](https://docs.docker.com/compose/install/)
 
 > [!IMPORTANT]
 > Docker here is required for hosting the database (postgres). See [the docker compose file](./docker/docker-compose.yml) for details. You can also connect to an external Postgres instance by setting the appropriate environment variables.
@@ -190,6 +190,12 @@ Useful things to put in it:
 - Anything else that helps the AI understand your project better
 
 CommitAI will automatically add `.commitai/*` to your `.gitignore` so the file stays local.
+
+### Customizing Message Personality (System Prompt)
+You can also edit [`src/assets/systemPromts.txt`](./src/assets/systemPromts.txt) to change the AI's personality — tone, verbosity, language, and so on.
+
+> [!WARNING]
+> The existing system prompt already contains rules for the **commit message format** (title structure, body line types, JSON output, etc.). If you edit it, make sure to **keep the formatting instructions intact**, otherwise the output may break or become unparseable. or you can just edit the code, whats stopping you?
 
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request with your improvements.
