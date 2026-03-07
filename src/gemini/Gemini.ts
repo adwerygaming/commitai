@@ -15,7 +15,6 @@ interface GenerateSwitchProp {
     additionalContext?: string | null
     model?: string,
     useProxy?: boolean
-    // showWatermark?: boolean
 }
 
 interface UnionGenerateProp {
