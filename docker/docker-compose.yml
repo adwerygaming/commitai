@@ -4,6 +4,7 @@ services:
   pgadmin:
     container_name: commitai-pgadmin
     image: dpage/pgadmin4:latest
+    restart: always
     ports:
       - ${PGADMIN_PORT}:80
     environment:
@@ -17,6 +18,7 @@ services:
   db:
     container_name: commitai-db
     image: postgres:18.2-alpine
+    restart: always
     environment: 
       POSTGRES_DB: commitai
       POSTGRES_USER: commitai

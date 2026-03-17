@@ -53,7 +53,7 @@ export class Gemini {
     }
 
     async generate({ useProxy, content, additionalContext, model, projectContext }: GenerateSwitchProp): Promise<GenerateResult> {
-        const GIT_DIFF_CHAR_LIMIT = 98000
+        const GIT_DIFF_CHAR_LIMIT = 90000
         if (content.length > GIT_DIFF_CHAR_LIMIT) {
             content = content.slice(0, GIT_DIFF_CHAR_LIMIT) + "... [truncated]"
         }
@@ -155,7 +155,7 @@ export class Gemini {
                     type: "array",
                     items: { type: "string" },
                     minItems: 1,
-                    maxItems: 20
+                    maxItems: 67
                 }
             }
         }

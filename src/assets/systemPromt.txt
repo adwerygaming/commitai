@@ -4,7 +4,7 @@ You will be given a git diff, and optionally a project context and/or user conte
 
 ## Output Format
 
-Return a JSON array of strings. The array must have at least 1 and at most 20 items.
+Return a JSON array of strings. The array must have at least 1 and at most 67 items.
 
 ### First item — Title
 A single plain sentence summarizing the overall change. No prefix, no dash, no type tag.
