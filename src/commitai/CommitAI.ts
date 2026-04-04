@@ -27,19 +27,23 @@ export class CommitAI {
     }
 
     async checkGitIgnoreFile(): Promise<true> {
-        const ignoreFilePath = path.join(this.directoryPath, ".gitignore")
-        const ignoreFileContentRaw = fs.readFileSync(ignoreFilePath, "utf-8")
-        const ignoreFileContents = ignoreFileContentRaw.split("\n").filter((x) => x.length > 0 && !x.startsWith("#"))
+        try {
+            const ignoreFilePath = path.join(this.directoryPath, ".gitignore")
+            const ignoreFileContentRaw = fs.readFileSync(ignoreFilePath, "utf-8")
+            const ignoreFileContents = ignoreFileContentRaw.split("\n").filter((x) => x.length > 0 && !x.startsWith("#"))
 
-        const entryValue = ".commitai/*"
+            const entryValue = ".commitai/*"
 
-        if (!ignoreFileContents.includes(entryValue)) {
-            console.log(`[${Tags.CommitAI}] Added .commitai entry on .gitignore file`)
-            const newEntry = `\n\n# This line was added by .commitai\n# This is a directory for storing commitai stuff to make commit generation better\n${entryValue}`
-            fs.appendFileSync(ignoreFilePath, newEntry)
+            if (!ignoreFileContents.includes(entryValue)) {
+                console.log(`[${Tags.CommitAI}] Added .commitai entry on .gitignore file`)
+                const newEntry = `\n\n# This line was added by .commitai\n# This is a directory for storing commitai stuff to make commit generation better\n${entryValue}`
+                fs.appendFileSync(ignoreFilePath, newEntry)
+            }
+
+            return true
+        } catch (e) {
+            throw new Error(`Failed to check .gitignore file.`, { cause: e})
         }
-
-        return true
     }
 
     async fetchConfigDir(): Promise<string> {

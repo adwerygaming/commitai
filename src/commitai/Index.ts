@@ -36,8 +36,18 @@ if (!repoCheck) {
 
 const project = await projects.init()
 const branch = await commitAI.currentBranch()
-await commitAI.checkGitIgnoreFile()
-await commitAI.fetchConfigDir()
+
+try {
+    await commitAI.checkGitIgnoreFile()
+} catch {
+    // silent
+}
+
+try {
+    await commitAI.fetchConfigDir()
+} catch {
+    console.log(`[${Tags.Warn}] Failed to fetch .commitai config directory.`)
+}
 
 console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
 console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)

@@ -63,6 +63,7 @@ export class Projects {
         const contextFile = fs.existsSync(contextFilePath)
 
         if (!contextFile) {
+            console.log("")
             console.log(`[${Tags.Info}] This project doesn't have CommitAI.md file`)
             console.log(`[${Tags.Info}] You can make the commit messages better by specifying context on commitai.md.`)
             return null
