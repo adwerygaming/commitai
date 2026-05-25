@@ -17,7 +17,7 @@ if (!projectDir) {
     throw new Error("Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.")
 }
 
-if (!userContext) {
+if (userContext) {
     console.log(`[${Tags.CommitAI}] Additional user context provided: "${userContext}"`);
 }
 
