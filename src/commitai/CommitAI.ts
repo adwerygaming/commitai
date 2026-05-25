@@ -90,6 +90,11 @@ export class CommitAI {
     async processPromt({ content, additionalContext, projectContext }: ProcessPromtProps): Promise<ProceededPromts> {
         const systemPrompt = await this.fetchSystemPromt()
 
+        if (content.length > 10000) {
+            console.log(`[${Tags.Warn}] The git diff content is too long (${content.length} characters). Truncating to 10000 characters for better performance.`)
+            content = content.slice(0, 10000)
+        }
+
         const partsProjectContext = projectContext ? [
             "[START OF PROJECT CONTEXT]",
             projectContext ?? "No project context provided. You may proceed.",
