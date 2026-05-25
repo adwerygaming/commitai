@@ -1,5 +1,5 @@
-import { Gemini } from "../gemini/Gemini.js";
-import { env } from "../utils/EnvManager.js";
+
+import { AIProvider } from "../AIProvider/AIProvider.js";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
 import { Commits } from "./Commits.js";
@@ -8,34 +8,30 @@ import { Stats } from "./Stats.js";
 
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
-const userContext = args.join(" ");
-const useProxy = env.MASDEPAN_DEV_ENV ? true : false
+const userContext = args.join(" ").length > 0 ? args.join(" ") : null;
 
 console.log("")
 console.log(`[${Tags.CommitAI}] Generative Commit Message`);
 
 if (!projectDir) {
-    console.log(`[${Tags.Error}] Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.`)
-    process.exit(1);
+    throw new Error("Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.")
 }
 
-if (userContext.length > 0) {
+if (!userContext) {
     console.log(`[${Tags.CommitAI}] Additional user context provided: "${userContext}"`);
 }
 
 const commitAI = new CommitAI(projectDir)
 const projects = new Projects(projectDir)
-const gemini = new Gemini()
+const aiProvider = new AIProvider()
 
-const repoCheck = await commitAI.isRepo()
-
+const repoCheck = await commitAI.getRepoStatus()
 if (!repoCheck) {
-    console.log(`[${Tags.CommitAI}] This directory dosen't appear to be a git repo. Make sure to init first.`)
-    process.exit(1)
+    throw new Error("This directory dosen't appear to be a git repo. Make sure to init first.")
 }
 
 const project = await projects.init()
-const branch = await commitAI.currentBranch()
+const branch = await commitAI.getCurrentBranch()
 
 try {
     await commitAI.checkGitIgnoreFile()
@@ -64,34 +60,31 @@ if (!gitDiffContent) {
     process.exit(1)
 }
 
-const ai = await gemini.generate({
-    content: gitDiffContent,
-    additionalContext: userContext,
-    projectContext,
-    useProxy
+const { systemPrompt, userPrompt } = await commitAI.processPromt({ content: gitDiffContent, additionalContext: userContext, projectContext });
+
+const { content, usageMetadata, model } = await aiProvider.generate({
+    systemPrompt,
+    userPrompt
 })
 
-const aiResponse = ai.content
-const aiUsage = ai.usageMetadata
-
-if (aiResponse.length == 0) {
+if (content.length == 0) {
     console.log(`[${Tags.CommitAI}] There is nothing to push.`)
     process.exit(1)
 }
 
-// log
+// // log
 const commit = new Commits(project.id)
-const addCommitRes = await commit.add(aiResponse)
+const addCommitRes = await commit.add(content)
 const stat = new Stats(addCommitRes.id)
 await stat.add({
-    model_version: aiUsage?.model ?? "Unknown Model",
-    prompt_token_count: aiUsage?.promptTokenCount ?? 0,
-    total_token_count: aiUsage?.totalTokenCount ?? 0,
-    candidates_token_count: aiUsage?.candidatesTokenCount ?? 0,
+    model_version: model ?? "Unknown Model",
+    prompt_token_count: usageMetadata?.prompt_tokens ?? 0,
+    total_token_count: usageMetadata?.total_tokens ?? 0,
+    candidates_token_count: 0,
 })
 
 console.log("")
-const pushResult = await commitAI.push(aiResponse)
+const pushResult = await commitAI.push(content)
 console.log("")
 
 if (pushResult) {
