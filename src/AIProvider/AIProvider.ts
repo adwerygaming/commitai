@@ -58,11 +58,7 @@ export class AIProvider {
 
             console.log(`[${Tags.AI}] Model ${model} was used.`)
             console.log(`[${Tags.AI}] Elapsed: ${elapsedSecs}s (${elapsedMs}ms)`)
-            // console.log(res)
-            // console.log(systemPrompt)
-            // console.log(userPrompt)
 
-            // possibly bcs of rate limited, if only using 1 account.
             if (!aiResponse) {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
                 return { content: [] }
