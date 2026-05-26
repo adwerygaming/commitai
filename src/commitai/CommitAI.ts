@@ -86,8 +86,6 @@ export class CommitAI {
             console.log("")
             console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 
-            return false
-
             // STEP 3 - PUSH
             await this.git().push()
 
