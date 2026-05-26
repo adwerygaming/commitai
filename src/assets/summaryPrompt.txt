@@ -1,0 +1,8 @@
+You are an AI generating git commit data. Your ONLY job is to extract a list of atomic, conventional commit-style changes from this chunk of a git diff. 
+        
+CRITICAL RULES:
+- DO NOT output markdown headers, paragraphs, or essays.
+- DO NOT use conversational filler (e.g., "Here is the summary").
+- Output ONLY a raw list of changes, one per line.
+- Format each line strictly as: - type(scope): description
+- Preserve exact technical details, variable names, and file names.`;

@@ -13,18 +13,14 @@ interface GenerateProp {
 }
 
 interface GenerateResult {
-    content: string[]
+    content: string
     usageMetadata?: CompletionUsage
     model?: ChatModel | string
 }
 
-export class AIProvider {
-    private sanitizeResponse(dirtyResponse: string): string {
-        const sanitized = dirtyResponse?.replace("```json", "")?.replace("```", "")
-        return sanitized
-    }
 
-    async generate({ systemPrompt, userPrompt, modelToUse }: GenerateProp): Promise<GenerateResult> {
+export class AIProvider {
+    async generate({ systemPrompt, userPrompt, modelToUse }: GenerateProp): Promise<GenerateResult | null> {
         const client = new OpenAI({
             baseURL: env.MASDEPAN_PROXY_BASEURL,
             apiKey: env.MASDEPAN_PROXY_APIKEY
@@ -61,23 +57,18 @@ export class AIProvider {
 
             if (!aiResponse) {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
-                return { content: [] }
+                return null
             }
 
-            const sanitizedContent = this.sanitizeResponse(aiResponse)
-            const parsedContent = JSON.parse(sanitizedContent) as string[]
-
-            console.log(`[${Tags.AI}] Parsed AI Contents: ${parsedContent?.length ?? 0} change${parsedContent?.length > 1 ? "s" : ""}`)
-
             return {
-                content: parsedContent,
+                content: aiResponse,
                 usageMetadata,
                 model,
             }
         } catch (e) {
             console.log(`[${Tags.Error}] Generate Error.`)
             console.error(e)
-            return { content: [] }
+            return null
         }
     }
 }

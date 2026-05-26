@@ -1,13 +1,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { type ChatModel, type CompletionUsage } from 'openai/resources';
 import { type SimpleGit, simpleGit } from 'simple-git';
-import Tags from '../utils/Tags.js';
 import { fileURLToPath } from 'url';
+import { AIProvider } from '../AIProvider/AIProvider.js';
+import Tags from '../utils/Tags.js';
+import { Commits } from './Commits.js';
+import { Projects } from './Projects.js';
+import { Stats } from './Stats.js';
 
-interface ProcessPromtProps {
-    content: string;
-    additionalContext?: string | null;
-    projectContext?: string | null;
+interface SummarizeProp {
+    diffChanges: string;
+    userContext?: string | null;
+}
+
+interface SummarizeResult {
+    changes: string[]
+    usageMetadata?: CompletionUsage
+    model?: ChatModel | string
 }
 
 interface ProceededPromts {
@@ -15,16 +25,25 @@ interface ProceededPromts {
     userPrompt: string;
 }
 
+enum SystemPromptType {
+    SUMMARY = "summary",
+    GIT_COMMIT = "gitCommit"
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const aiProvider = new AIProvider()
+
 export class CommitAI {    
     private readonly directoryPath: string
+    private projects: Projects
 
     constructor (
         directoryPath: string
     ) {
         this.directoryPath = directoryPath
+        this.projects = new Projects(directoryPath)
     }
 
     // GitHub
@@ -67,6 +86,8 @@ export class CommitAI {
             console.log("")
             console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 
+            return false
+
             // STEP 3 - PUSH
             await this.git().push()
 
@@ -80,19 +101,80 @@ export class CommitAI {
 
     // ====================================
 
-    async fetchSystemPromt(): Promise<string> {
+    async fetchSystemPrompt(type: SystemPromptType): Promise<string> {
         const assetsPath = path.join(__dirname, "..", "assets")
-        const systemPromtPath = path.join(assetsPath, "systemPromt.txt")
-        const systemPromt = fs.readFileSync(systemPromtPath, "utf-8")
-        return systemPromt
+
+        if (type === "summary") {
+            const summaryPromptPath = path.join(assetsPath, "summaryPrompt.txt")
+            const summaryPrompt = fs.readFileSync(summaryPromptPath, "utf-8")
+            return summaryPrompt
+        } else if (type === "gitCommit") {
+            const gitCommitPromptPath = path.join(assetsPath, "gitCommitPrompt.txt")
+            const gitCommitPrompt = fs.readFileSync(gitCommitPromptPath, "utf-8")
+            return gitCommitPrompt
+        } else {
+            throw new Error(`Unsupported system prompt type: ${type}`)
+        }
     }
 
-    async processPromt({ content, additionalContext, projectContext }: ProcessPromtProps): Promise<ProceededPromts> {
-        const systemPrompt = await this.fetchSystemPromt()
+    private chunkContent(content: string, maxLength: number): string[] {
+        const chunks: string[] = [];
+        for (let i = 0; i < content.length; i += maxLength) {
+            chunks.push(content.substring(i, i + maxLength));
+        }
+        return chunks;
+    }
 
-        if (content.length > 10000) {
-            console.log(`[${Tags.Warn}] The git diff content is too long (${content.length} characters). Truncating to 10000 characters for better performance.`)
-            content = content.slice(0, 10000)
+    // 2. The recursive summarizer
+    private async summarizeLargeContent(content: string): Promise<string> {
+        const MAX_LENGTH = 10000;
+
+        if (content.length <= MAX_LENGTH) {
+            return content;
+        }
+
+        console.log(`[${Tags.CommitAI}] Content length (${content.length}) exceeds ${MAX_LENGTH}.`);
+
+        const chunks = this.chunkContent(content, MAX_LENGTH);
+
+        console.log(`[${Tags.CommitAI}] Content has been split into ${chunks.length} chunk(s).`);
+
+        const summarySystemPrompt = await this.fetchSystemPrompt(SystemPromptType.GIT_COMMIT);
+
+        const summaryPromises = chunks.map(async (chunk, index) => {
+            const userPrompt = `Chunk ${index + 1} of ${chunks.length}:\n\n${chunk}`;
+
+            const result = await aiProvider.generate({
+                systemPrompt: summarySystemPrompt,
+                userPrompt: userPrompt
+            });
+
+            if (!result) {
+                console.log(`[${Tags.CommitAI}] Failed to summarize chunk ${index + 1}. Using original chunk as fallback.`);
+                return null;
+            }
+
+            return result.content;
+        });
+
+        const summaries = await Promise.all(summaryPromises);
+
+        const combinedSummary = summaries.join('\n\n--- [NEXT CHUNK SUMMARY] ---\n\n');
+
+        return this.summarizeLargeContent(combinedSummary);
+    }
+
+    sanitizeResponse(dirtyResponse: string): string {
+        const sanitized = dirtyResponse?.replace("```json", "")?.replace("```", "")
+        return sanitized
+    }
+
+    async processPrompt({ diffChanges, userContext }: SummarizeProp): Promise<ProceededPromts> {
+        const systemPrompt = await this.fetchSystemPrompt(SystemPromptType.GIT_COMMIT)
+        const projectContext = await this.projects.fetchContext()
+
+        if (diffChanges.length > 10000) {
+            diffChanges = await this.summarizeLargeContent(diffChanges)
         }
 
         const partsProjectContext = projectContext ? [
@@ -101,15 +183,15 @@ export class CommitAI {
             "[END OF PROJECT CONTEXT]",
         ] : []
 
-        const partsAdditionalContext = additionalContext ? [
+        const partsAdditionalContext = userContext ? [
             "[START OF ADDITIONAL CONTEXT]",
-            additionalContext ?? "No additional context provided. You may proceed.",
+            userContext ?? "No additional context provided. You may proceed.",
             "[END OF ADDITIONAL CONTEXT]",
         ] : []
 
-        const partsGitDiff = content ? [
+        const partsGitDiff = diffChanges ? [
             "[START OF GIT DIFF]",
-            content ?? "No git diff provided. You may proceed.",
+            diffChanges ?? "No git diff provided. You may proceed.",
             "[END OF GIT DIFF]",
         ] : []
 
@@ -119,6 +201,56 @@ export class CommitAI {
             systemPrompt,
             userPrompt
         }
+    }
+
+    async summarize({ diffChanges, userContext }: SummarizeProp): Promise<SummarizeResult | null> {
+        const { systemPrompt, userPrompt } = await this.processPrompt({ diffChanges, userContext });
+
+        console.log(systemPrompt)
+        console.log(userPrompt)
+
+        const data = await aiProvider.generate({
+            systemPrompt,
+            userPrompt
+        })
+
+        if (!data) {
+            console.log(`[${Tags.CommitAI}] Failed to get response from AI.`)
+            return null
+        }
+
+        const { content, usageMetadata, model } = data
+
+        const sanitizedContent = this.sanitizeResponse(content)
+        const parsedContent = JSON.parse(sanitizedContent) as string[]
+
+        console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContent?.length ?? 0} change${parsedContent?.length > 1 ? "s" : ""}`)
+
+        return {
+            changes: parsedContent,
+            usageMetadata,
+            model
+        }
+    }
+
+    async logSummary(data: SummarizeResult): Promise<boolean> {
+        const project = await this.projects.resolve()
+        if (!project) {
+            console.log(`[${Tags.Error}] Failed to resolve project. Cannot log summary.`)
+            return false
+        }
+
+        const commit = new Commits(project.id)
+        const addCommitRes = await commit.add(data.changes)
+        const stat = new Stats(addCommitRes.id)
+
+        await stat.add({
+            model_version: data.model ?? "Unknown Model",
+            prompt_token_count: data.usageMetadata?.prompt_tokens ?? 0,
+            total_token_count: data.usageMetadata?.total_tokens ?? 0,
+            candidates_token_count: 0,
+        })
+        return true
     }
 
     async checkGitIgnoreFile(): Promise<true> {

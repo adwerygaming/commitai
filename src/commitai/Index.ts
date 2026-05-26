@@ -1,10 +1,7 @@
 
-import { AIProvider } from "../AIProvider/AIProvider.js";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
-import { Commits } from "./Commits.js";
 import { Projects } from "./Projects.js";
-import { Stats } from "./Stats.js";
 
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
@@ -23,7 +20,6 @@ if (userContext) {
 
 const commitAI = new CommitAI(projectDir)
 const projects = new Projects(projectDir)
-const aiProvider = new AIProvider()
 
 const repoCheck = await commitAI.getRepoStatus()
 if (!repoCheck) {
@@ -49,9 +45,6 @@ console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
 console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)
 console.log(`[${Tags.CommitAI}] Working on branch   : ${branch}`)
 
-const projectContext = await projects.fetchContext()
-console.log("")
-
 const gitDiffContent = await commitAI.fetchGitChanges()
 console.log("")
 
@@ -60,31 +53,15 @@ if (!gitDiffContent) {
     process.exit(1)
 }
 
-const { systemPrompt, userPrompt } = await commitAI.processPromt({ content: gitDiffContent, additionalContext: userContext, projectContext });
+const data = await commitAI.summarize({ diffChanges: gitDiffContent, userContext })
 
-const { content, usageMetadata, model } = await aiProvider.generate({
-    systemPrompt,
-    userPrompt
-})
-
-if (content.length == 0) {
+if (!data || data?.changes.length == 0) {
     console.log(`[${Tags.CommitAI}] There is nothing to push.`)
     process.exit(1)
 }
 
-// // log
-const commit = new Commits(project.id)
-const addCommitRes = await commit.add(content)
-const stat = new Stats(addCommitRes.id)
-await stat.add({
-    model_version: model ?? "Unknown Model",
-    prompt_token_count: usageMetadata?.prompt_tokens ?? 0,
-    total_token_count: usageMetadata?.total_tokens ?? 0,
-    candidates_token_count: 0,
-})
-
 console.log("")
-const pushResult = await commitAI.push(content)
+const pushResult = await commitAI.push(data.changes)
 console.log("")
 
 if (pushResult) {
