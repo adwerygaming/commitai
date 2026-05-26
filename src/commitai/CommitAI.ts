@@ -204,8 +204,8 @@ export class CommitAI {
     async summarize({ diffChanges, userContext }: SummarizeProp): Promise<SummarizeResult | null> {
         const { systemPrompt, userPrompt } = await this.processPrompt({ diffChanges, userContext });
 
-        console.log(systemPrompt)
-        console.log(userPrompt)
+        // console.log(systemPrompt)
+        // console.log(userPrompt)
 
         const data = await aiProvider.generate({
             systemPrompt,
