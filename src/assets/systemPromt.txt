@@ -11,6 +11,7 @@ A single plain sentence summarizing the overall change. No prefix, no dash, no t
 - Max 72 characters
 - Sentence case (capitalize first word only)
 - Focus on WHAT was changed at a high level
+- If additional user context provided, you need to include it here on the title.
 - Examples:
   - "Adjust main function call formatting"
   - "Add database persistence for commit history"
