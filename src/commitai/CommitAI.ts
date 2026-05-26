@@ -169,7 +169,7 @@ export class CommitAI {
 
     async processPrompt({ diffChanges, userContext }: SummarizeProp): Promise<ProceededPromts> {
         const systemPrompt = await this.fetchSystemPrompt(SystemPromptType.GIT_COMMIT)
-        const projectContext = await this.projects.fetchContext()
+        const projectContext = await this.projects.getContext()
 
         if (diffChanges.length > 10000) {
             diffChanges = await this.summarizeLargeContent(diffChanges)
@@ -232,7 +232,7 @@ export class CommitAI {
     }
 
     async logSummary(data: SummarizeResult): Promise<boolean> {
-        const project = await this.projects.resolve()
+        const project = await this.projects.resolvePath()
         if (!project) {
             console.log(`[${Tags.Error}] Failed to resolve project. Cannot log summary.`)
             return false

@@ -1,10 +1,10 @@
-import { type Knex } from "knex"
-import fs from "node:fs"
-import path from "node:path"
-import { v7 as uuidv7 } from 'uuid'
-import DatabaseClient from "../database/Client.js"
-import { type ProjectSchema } from "../types/DatabaseTables.js"
-import Tags from "../utils/Tags.js"
+import { type Knex } from "knex";
+import fs from "node:fs";
+import path from "node:path";
+import { v7 as uuidv7 } from 'uuid';
+import DatabaseClient from "../database/Client.js";
+import { type ProjectSchema } from "../types/DatabaseTables.js";
+import Tags from "../utils/Tags.js";
 
 export class Projects {
     private readonly directoryPath: string
@@ -18,17 +18,17 @@ export class Projects {
         this.directoryPath = directoryPath
     }
 
-    async init(): Promise<ProjectSchema> {
-        const check = await this.resolve()
+    async initialize(): Promise<ProjectSchema> {
+        const check = await this.resolvePath()
 
         if (!check) {
-            return await this.set()
+            return await this.register()
         }
 
         return check
     }
 
-    async resolve(): Promise<ProjectSchema | null> {
+    async resolvePath(): Promise<ProjectSchema | null> {
         const res = await this.db()
             .select("*")
             .where("project_path", this.directoryPath)
@@ -37,7 +37,7 @@ export class Projects {
         return res ?? null
     }
 
-    async set(): Promise<ProjectSchema> {
+    async register(): Promise<ProjectSchema> {
         // example: /home/masdepan/programming/[commitai] <--- this
         // res: commitai
         // fallback to uuid if failed. just in case ehehe.
@@ -55,15 +55,14 @@ export class Projects {
         return res
     }
 
-    async fetchContext(): Promise<string | null> {
-        const project = await this.resolve()
+    async getContext(): Promise<string | null> {
+        const project = await this.resolvePath()
         const commitAIDirPath = path.join(this.directoryPath, ".commitai")
 
         const contextFilePath = path.join(commitAIDirPath, "commitai.md")
         const contextFile = fs.existsSync(contextFilePath)
 
         if (!contextFile) {
-            console.log("")
             console.log(`[${Tags.Info}] This project doesn't have CommitAI.md file`)
             console.log(`[${Tags.Info}] You can make the commit messages better by specifying context on commitai.md.`)
             return null

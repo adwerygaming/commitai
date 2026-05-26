@@ -22,23 +22,19 @@ const commitAI = new CommitAI(projectDir)
 const projects = new Projects(projectDir)
 
 const repoCheck = await commitAI.getRepoStatus()
+const branch = await commitAI.getCurrentBranch()
+
 if (!repoCheck) {
     throw new Error("This directory dosen't appear to be a git repo. Make sure to init first.")
 }
 
-const project = await projects.init()
-const branch = await commitAI.getCurrentBranch()
+const project = await projects.initialize()
 
 try {
     await commitAI.checkGitIgnoreFile()
-} catch {
-    // silent
-}
-
-try {
     await commitAI.fetchConfigDir()
-} catch {
-    console.log(`[${Tags.Warn}] Failed to fetch .commitai config directory.`)
+} catch (e) {
+    console.error(`[${Tags.Warn}] Failed: `, e)
 }
 
 console.log(`[${Tags.CommitAI}] Project Name        : ${project.name}`)
@@ -46,7 +42,6 @@ console.log(`[${Tags.CommitAI}] Project path        : ${project.project_path}`)
 console.log(`[${Tags.CommitAI}] Working on branch   : ${branch}`)
 
 const gitDiffContent = await commitAI.fetchGitChanges()
-console.log("")
 
 if (!gitDiffContent) {
     console.log(`[${Tags.CommitAI}] This repo dosen't have any tracked changes.`)
