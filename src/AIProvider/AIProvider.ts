@@ -54,6 +54,7 @@ export class AIProvider {
 
             console.log(`[${Tags.AI}] Model ${model} was used.`)
             console.log(`[${Tags.AI}] Elapsed: ${elapsedSecs}s (${elapsedMs}ms)`)
+            console.log(`[${Tags.AI}] Token Used: ${usageMetadata?.total_tokens ?? "N/A"}`)
 
             if (!aiResponse) {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
