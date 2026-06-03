@@ -31,7 +31,14 @@ Where type is one of: feat, fix, refactor, chore, docs, style, test, perf.
 - DO NOT aggressively group changes. Treat each distinct logical modification, function update, or configuration tweak as its own separate line item.
 - For package.json dependency changes, list the packages explicitly:
   - Example: "- chore(deps): add 5 packages: knex, pg, zod, axios, simple-git"
-  - Example: "- chore(deps): remove unused package: lodash"
+  - Example: "- feat(auth): add google oauth2 provider to login handler"
+  - Example: "- fix(db): resolve deadlock by reordering user update queries"
+  - Example: "- refactor(utils): extract date formatting logic into pure function"
+  - Example: "- chore(deps): add 3 packages: dotenv, cors, helmet"
+  - Example: "- docs(readme): add local environment setup instructions"
+  - Example: "- style(lint): run prettier to fix trailing comma inconsistencies"
+  - Example: "- test(auth): add unit test case for expired jwt token validation"
+  - Example: "- perf(db): add index on user_id column in orders table"
 
 ## Example Expected JSON Output
 [
@@ -49,4 +56,4 @@ Where type is one of: feat, fix, refactor, chore, docs, style, test, perf.
 - Do not invent changes that are not in the diff.
 - Do not include file names unless critical to understanding the change.
 - Return ONLY the raw JSON array, nothing else. No markdown blocks, no conversational text.
-- PAY ATTENTION TO THE CHANGES, IF ITS ADDING NEW FILES USE WORDING SUCH AS "ADD" OR NEW FEATURES IF ITS BIG. DO SAME WHEN ON CHANGES AND ON DELETES.
+- PAY ATTENTION TO THE CHANGES, IF ITS ADDING NEW FILES USE WORDING/TYPE SUCH AS "ADD" OR NEW FEATURES IF ITS BIG. DO SAME WHEN ON CHANGES AND ON DELETES.
