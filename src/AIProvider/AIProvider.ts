@@ -52,9 +52,9 @@ export class AIProvider {
             const elapsedMs = endTime - startTime
             const elapsedSecs = elapsedMs / 1000
 
-            console.log(`[${Tags.AI}] Model ${model} was used.`)
-            console.log(`[${Tags.AI}] Elapsed: ${elapsedSecs}s (${elapsedMs}ms)`)
-            console.log(`[${Tags.AI}] Token Used: ${usageMetadata?.total_tokens ?? "N/A"} token${usageMetadata?.total_tokens === 1 ? "" : "s"}`)
+            console.log(`[${Tags.AI}] Model         : ${model}`)
+            console.log(`[${Tags.AI}] Elapsed       : ${elapsedSecs}s (${elapsedMs}ms)`)
+            console.log(`[${Tags.AI}] Token Used    : ${usageMetadata?.total_tokens ?? "N/A"} token${usageMetadata?.total_tokens === 1 ? "" : "s"}`)
 
             if (!aiResponse) {
                 console.log(`[${Tags.AI}] AI Didn't give any response. Likely rate limited or something.`)
