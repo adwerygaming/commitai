@@ -31,7 +31,7 @@ if (!repoCheck) {
 const project = await projects.initialize()
 
 try {
-    await commitAI.checkGitIgnoreFile()
+    // await commitAI.checkGitIgnoreFile()
     await commitAI.fetchConfigDir()
 } catch (e) {
     console.error(`[${Tags.Warn}] Failed: `, e)
