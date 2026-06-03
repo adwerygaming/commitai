@@ -52,7 +52,7 @@ export class CommitAI {
     }
 
     async addFiles(): Promise<string> {
-            return await this.git().add(".")
+        return await this.git().add(".")
     }
 
     async getRepoStatus(): Promise<boolean> {
