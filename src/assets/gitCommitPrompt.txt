@@ -40,7 +40,7 @@ Where type is one of: feat, fix, refactor, chore, docs, style, test, perf.
   - Example: "- test(auth): add unit test case for expired jwt token validation"
   - Example: "- perf(db): add index on user_id column in orders table"
 
-## Example Expected JSON Output
+## Example Expected JSON Output shape (not the data)
 [
   "Improve code by adding missing semicolon and standardizing formatting",
   "- chore: remove eslint disable comment",
