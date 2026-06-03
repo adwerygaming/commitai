@@ -220,12 +220,13 @@ export class CommitAI {
         const { content, usageMetadata, model } = data
 
         const sanitizedContent = this.sanitizeResponse(content)
-        const parsedContent = JSON.parse(sanitizedContent) as string[]
+        const parsedContents = JSON.parse(sanitizedContent) as string[]
+        const parsedContentLength = parsedContents.length - 1 // -1 bcs for title
 
-        console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContent?.length ?? 0} change${parsedContent?.length > 1 ? "s" : ""}`)
+        console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContentLength ?? 0} change${parsedContentLength > 1 ? "s" : ""}`)
 
         return {
-            changes: parsedContent,
+            changes: parsedContents,
             usageMetadata,
             model
         }
