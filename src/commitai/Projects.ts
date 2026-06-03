@@ -59,7 +59,7 @@ export class Projects {
         const project = await this.resolvePath()
         const commitAIDirPath = path.join(this.directoryPath, ".commitai")
 
-        const contextFilePath = path.join(commitAIDirPath, "commitai.md")
+        const contextFilePath = path.join(commitAIDirPath, "commitAI.md")
         const contextFile = fs.existsSync(contextFilePath)
 
         if (!contextFile) {
