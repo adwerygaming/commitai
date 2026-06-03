@@ -47,6 +47,7 @@ if (!gitDiffContent) {
     console.log(`[${Tags.CommitAI}] This repo dosen't have any tracked changes.`)
     process.exit(1)
 }
+console.log("")
 
 const data = await commitAI.summarize({ diffChanges: gitDiffContent, userContext })
 
