@@ -49,3 +49,4 @@ Where type is one of: feat, fix, refactor, chore, docs, style, test, perf.
 - Do not invent changes that are not in the diff.
 - Do not include file names unless critical to understanding the change.
 - Return ONLY the raw JSON array, nothing else. No markdown blocks, no conversational text.
+- PAY ATTENTION TO THE CHANGES, IF ITS ADDING NEW FILES USE WORDING SUCH AS "ADD" OR NEW FEATURES IF ITS BIG. DO SAME WHEN ON CHANGES AND ON DELETES.
