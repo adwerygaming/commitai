@@ -287,6 +287,7 @@ export class CommitAI {
         if (!checkRepo) return null
 
         const ignoredFiles: string[] = [
+            "bun.lock",
             "package-lock.json",
             "yarn.lock",
             "pnpm-lock.yaml",
