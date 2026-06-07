@@ -1,3 +1,4 @@
+import { confirm } from '@inquirer/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { type ChatModel, type CompletionUsage } from 'openai/resources';
@@ -83,6 +84,13 @@ export class CommitAI {
             await this.git().commit(commitMessages)
 
             const currentBranch = await this.getCurrentBranch()
+            const confirmAnswer = await confirm({ message: `Do you want to push these changes to branch ${currentBranch}?`, default: true })
+
+            if (!confirmAnswer) {
+                console.log(`[${Tags.CommitAI}] Push cancelled.`)
+                return false
+            }
+
             console.log("")
             console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 

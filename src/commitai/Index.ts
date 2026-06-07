@@ -63,7 +63,7 @@ console.log("")
 if (pushResult) {
     console.log(`[${Tags.CommitAI}] OK!`)
 } else {
-    console.log(`[${Tags.CommitAI}] Push Failed.`)
+    console.log(`[${Tags.CommitAI}] Push Canceled.`)
 }
 
 process.exit(0)
