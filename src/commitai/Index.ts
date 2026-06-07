@@ -1,5 +1,4 @@
 
-import { confirm } from "@inquirer/prompts";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
 import { Projects } from "./Projects.js";
@@ -58,24 +57,24 @@ if (!data || data?.changes.length == 0) {
 }
 
 console.log("")
-console.log(`[${Tags.CommitAI}] Preview of changes to be pushed:`)
-data.changes.forEach((change) => console.log(`[${Tags.CommitAI}] ${change}`))
+console.log(`[${Tags.CommitAI}] Here is your commit message:`)
+data.changes.forEach((change) => console.log(`${change}`))
 
-const confirmAnswer = await confirm({ message: `Are you ok with these changes?`, default: true })
+// const confirmAnswer = await confirm({ message: `Are you ok with these changes?`, default: true })
 
-if (!confirmAnswer) {
-    console.log(`[${Tags.CommitAI}] Push cancelled.`)
-    process.exit(1)
-}
+// if (!confirmAnswer) {
+//     console.log(`[${Tags.CommitAI}] Push cancelled.`)
+//     process.exit(1)
+// }
 
-console.log("")
-const pushResult = await commitAI.push(data.changes)
-console.log("")
+// console.log("")
+// const pushResult = await commitAI.push(data.changes)
+// console.log("")
 
-if (pushResult) {
-    console.log(`[${Tags.CommitAI}] OK!`)
-} else {
-    console.log(`[${Tags.CommitAI}] Push Canceled.`)
-}
+// if (pushResult) {
+//     console.log(`[${Tags.CommitAI}] OK!`)
+// } else {
+//     console.log(`[${Tags.CommitAI}] Push Canceled.`)
+// }
 
 process.exit(0)
