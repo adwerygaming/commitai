@@ -1,4 +1,3 @@
-import { confirm } from '@inquirer/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { type ChatModel, type CompletionUsage } from 'openai/resources';
@@ -76,22 +75,14 @@ export class CommitAI {
             const title = changes[0]
             const body = changes.slice(1).join("\n")
 
-            console.log("")
-            console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
-            changes.forEach((change) => console.log(`[${Tags.Git}] ${change}`))
+            // console.log("")
+            // console.log(`[${Tags.Git}] Commiting ${changes.length} changes.`)
+            // changes.forEach((change) => console.log(`[${Tags.Git}] ${change}`))
 
             const commitMessages = [title, body].filter(Boolean)
             await this.git().commit(commitMessages)
 
-            // confirm
             const currentBranch = await this.getCurrentBranch()
-            const confirmAnswer = await confirm({ message: `Do you want to push these changes to branch ${currentBranch}?`, default: true })
-
-            if (!confirmAnswer) {
-                console.log(`[${Tags.CommitAI}] Push cancelled.`)
-                return false
-            }
-
             console.log("")
             console.log(`[${Tags.Git}] Pushing to branch ${currentBranch}...`)
 
@@ -230,9 +221,8 @@ export class CommitAI {
 
         const sanitizedContent = this.sanitizeResponse(content)
         const parsedContents = JSON.parse(sanitizedContent) as string[]
-        const parsedContentLength = parsedContents.length - 1 // -1 bcs for title
-
-        console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContentLength ?? 0} change${parsedContentLength > 1 ? "s" : ""}`)
+        // const parsedContentLength = parsedContents.length - 1 // -1 bcs for title
+        // console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContentLength ?? 0} change${parsedContentLength > 1 ? "s" : ""}`)
 
         return {
             changes: parsedContents,

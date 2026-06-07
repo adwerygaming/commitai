@@ -1,4 +1,5 @@
 
+import { confirm } from "@inquirer/prompts";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
 import { Projects } from "./Projects.js";
@@ -53,6 +54,17 @@ const data = await commitAI.summarize({ diffChanges: gitDiffContent, userContext
 
 if (!data || data?.changes.length == 0) {
     console.log(`[${Tags.CommitAI}] There is nothing to push.`)
+    process.exit(1)
+}
+
+console.log("")
+console.log(`[${Tags.CommitAI}] Preview of changes to be pushed:`)
+data.changes.forEach((change) => console.log(`[${Tags.CommitAI}] ${change}`))
+
+const confirmAnswer = await confirm({ message: `Are you ok with these changes?`, default: true })
+
+if (!confirmAnswer) {
+    console.log(`[${Tags.CommitAI}] Push cancelled.`)
     process.exit(1)
 }
 
