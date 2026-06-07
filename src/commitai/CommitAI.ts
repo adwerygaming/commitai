@@ -83,6 +83,7 @@ export class CommitAI {
             const commitMessages = [title, body].filter(Boolean)
             await this.git().commit(commitMessages)
 
+            // confirm
             const currentBranch = await this.getCurrentBranch()
             const confirmAnswer = await confirm({ message: `Do you want to push these changes to branch ${currentBranch}?`, default: true })
 
