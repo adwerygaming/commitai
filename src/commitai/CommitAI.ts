@@ -171,7 +171,10 @@ export class CommitAI {
         const systemPrompt = await this.fetchSystemPrompt(SystemPromptType.GIT_COMMIT)
         const projectContext = await this.projects.getContext()
 
-        if (diffChanges.length > 10000) {
+        // 200k for meta-llama/llama-4-scout-17b-16e-instruct
+        const diffLength = diffChanges.length
+        console.log(`[${Tags.CommitAI}] Git diff content length: ${diffLength} characters.`)
+        if (diffLength > 200000) {
             diffChanges = await this.summarizeLargeContent(diffChanges)
         }
 
