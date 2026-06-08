@@ -220,9 +220,14 @@ export class CommitAI {
         const { content, usageMetadata, model } = data
 
         const sanitizedContent = this.sanitizeResponse(content)
-        const parsedContents = JSON.parse(sanitizedContent) as string[]
-        // const parsedContentLength = parsedContents.length - 1 // -1 bcs for title
-        // console.log(`[${Tags.CommitAI}] Parsed AI Contents: ${parsedContentLength ?? 0} change${parsedContentLength > 1 ? "s" : ""}`)
+        let parsedContents: string[] = []
+
+        try {
+            parsedContents = JSON.parse(sanitizedContent) as string[]
+        } catch (e) {
+            console.log(sanitizedContent)
+            console.log(`[${Tags.CommitAI}] Failed to parse AI response.`, e)
+        }
 
         return {
             changes: parsedContents,

@@ -1,4 +1,5 @@
 
+import { confirm } from "@inquirer/prompts";
 import Tags from "../utils/Tags.js";
 import { CommitAI } from "./CommitAI.js";
 import { Projects } from "./Projects.js";
@@ -6,6 +7,7 @@ import { Projects } from "./Projects.js";
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
 const userContext = args.join(" ").length > 0 ? args.join(" ") : null;
+const noConfirm = args.includes("--no-confirm") || args.includes("-nc");
 
 console.log("")
 console.log(`[${Tags.CommitAI}] Generative Commit Message`);
@@ -60,21 +62,23 @@ console.log("")
 console.log(`[${Tags.CommitAI}] Here is your commit message:`)
 data.changes.forEach((change) => console.log(`${change}`))
 
-// const confirmAnswer = await confirm({ message: `Are you ok with these changes?`, default: true })
+if (!noConfirm) {
+    const confirmAnswer = await confirm({ message: `Are you ok with these changes?`, default: true })
 
-// if (!confirmAnswer) {
-//     console.log(`[${Tags.CommitAI}] Push cancelled.`)
-//     process.exit(1)
-// }
+    if (!confirmAnswer) {
+        console.log(`[${Tags.CommitAI}] Push cancelled.`)
+        process.exit(1)
+    }
+}
 
-// console.log("")
-// const pushResult = await commitAI.push(data.changes)
-// console.log("")
+console.log("")
+const pushResult = await commitAI.push(data.changes)
+console.log("")
 
-// if (pushResult) {
-//     console.log(`[${Tags.CommitAI}] OK!`)
-// } else {
-//     console.log(`[${Tags.CommitAI}] Push Canceled.`)
-// }
+if (pushResult) {
+    console.log(`[${Tags.CommitAI}] OK!`)
+} else {
+    console.log(`[${Tags.CommitAI}] Push Canceled.`)
+}
 
 process.exit(0)
