@@ -39,6 +39,8 @@ export class CommitAI {
     private readonly directoryPath: string
     private projects: Projects
 
+    private maxCharacterLimit = 25000
+
     constructor (
         directoryPath: string
     ) {
@@ -125,7 +127,7 @@ export class CommitAI {
 
     // 2. The recursive summarizer
     private async summarizeLargeContent(content: string): Promise<string> {
-        const MAX_LENGTH = 10000;
+        const MAX_LENGTH = this.maxCharacterLimit;
 
         if (content.length <= MAX_LENGTH) {
             return content;
@@ -174,7 +176,7 @@ export class CommitAI {
         // 200k for meta-llama/llama-4-scout-17b-16e-instruct
         const diffLength = diffChanges.length
         console.log(`[${Tags.CommitAI}] Git diff content length: ${diffLength} characters.`)
-        if (diffLength > 200000) {
+        if (diffLength > this.maxCharacterLimit) {
             diffChanges = await this.summarizeLargeContent(diffChanges)
         }
 

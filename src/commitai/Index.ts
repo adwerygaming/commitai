@@ -6,7 +6,7 @@ import { Projects } from "./Projects.js";
 
 const projectDir = process.env.CALL_FROM; // automatically provided if u are running via sh / bat script
 const args = process.argv.slice(2);
-const userContext = args.join(" ").length > 0 ? args.join(" ") : null;
+let userContext = args.join(" ").length > 0 ? args.join(" ") : "";
 const noConfirm = args.includes("--no-confirm") || args.includes("-nc");
 
 console.log("")
@@ -16,7 +16,14 @@ if (!projectDir) {
     throw new Error("Failed to get Project Directory. Make sure you are running this project from a script with env passthrough.")
 }
 
-if (userContext) {
+const userContexts = [
+    "-nc",
+    "--no-confirm"
+]
+const regex = new RegExp(`(${userContexts.join("|")})`, "g");
+userContext = userContext.replace(regex, "").trim();
+
+if (userContext.length > 0) {
     console.log(`[${Tags.CommitAI}] Additional user context provided: "${userContext}"`);
 }
 

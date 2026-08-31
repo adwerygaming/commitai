@@ -31,7 +31,7 @@ export class AIProvider {
         try {
             const startTime = Date.now()
             const res =  await client.chat.completions.create({
-                model: modelToUse ?? "auto",
+                model: modelToUse ?? "ai_summary",
                 messages: [
                     {
                         role: "system",
